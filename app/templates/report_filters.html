@@ -1,0 +1,122 @@
+{% for filter in filters %}
+    <div>
+
+    {#dropdowns#}
+    {% if filters[filter]['type'] == 'dropdown' %}
+        <div class="input-group mb-1">
+          <span class="input-group-text" id="basic-addon1" style="width: 100px">{{ filters[filter]['name'] }}</span>
+          <select id = "{{ filter }}" class="form-control" style="appearance: auto;">
+                {% if filter != 'program_id'%}
+                    <option value="" selected>Keep blank or choose...</option>
+                {% endif %}
+              {% for item in filters[filter]['result'] %}
+                {% if filter == 'program_id' %}
+                    <option value = "{{  item['option_id'] }}"
+                        {% if item['option_id'] == cur_program_id %}
+                            selected
+                        {% endif %}>
+                        {{ item['option_name'] }}
+                    </option>
+                {% else %}
+                    <option value = "{{  item['option_id'] }}">
+                        {{ item['option_name'] }}
+                    </option>
+                {% endif %}
+              {% endfor %}
+          </select>
+        </div>
+
+{#        <div class="form-floating">#}
+{#            <select id = "{{ filter }}" style="" class="form-select">#}
+{#                {% if filter != 'program_id'%}#}
+{#                    <option value="" selected>Keep blank or choose...</option>#}
+{#                {% endif %}#}
+{#                {% for item in filters[filter]['result'] %}#}
+{#                    {% if filter == 'program_id' %}#}
+{#                        <option value = "{{  item['option_id'] }}"#}
+{#                            {% if item['option_id'] == cur_program_id %}#}
+{#                                selected#}
+{#                            {% endif %}>#}
+{#                            {{ item['option_name'] }}#}
+{#                        </option>#}
+{#                    {% else %}#}
+{#                        <option value = "{{  item['option_id'] }}">#}
+{#                            {{ item['option_name'] }}#}
+{#                        </option>#}
+{#                    {% endif %}#}
+{#                {% endfor %}#}
+{#            </select>#}
+{#            <label for="{{ filter }}">{{ filters[filter]['name'] }}</label>#}
+{#        </div>#}
+    {% endif %}
+
+    {#multiselect#}
+    {% if filters[filter]['type'] == 'multiselect' %}
+        <div>
+            <div class="input-group ml-1">
+                <span class="input-group-text" style="width: 100px">{{ filters[filter]['name'] }}</span>
+                <span class="multiselect-native-select">
+                    <select id = "{{ filter }}" multiple="multiple"  class="form-select">
+                        {% for item in filters[filter]['result'] %}
+                            {% if filter == 'study_id' %}
+                                <option value = "{{  item['option_id'] }}" program_id = "{{ item['parent_id'] }}">
+                                    {{ item['option_name'] }}
+                                </option>
+                            {% else %}
+                                <option value = "{{  item['option_id'] }}">
+                                    {{ item['option_name'] }}
+                                </option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </span>
+            </div>
+        </div>
+    {% endif %}
+
+    {#date#}
+    {% if filters[filter]['type'] == 'date' %}
+        <div class="input-group date mb-1" datepicker>
+            <span class="input-group-text" id="basic-addon1" style="width: 100px">{{ filters[filter]['name'] }}</span>
+                <input class="form-control" placeholder="MM/DD/YYYY" id = "{{ filter }}"/>
+                <span class="input-group-append input-group-addon">
+                    <span class="input-group-text" style="height: 100%">
+                        <i class="fa fa-calendar" ></i>
+                    </span>
+                </span>
+        </div>
+
+    {% endif %}
+
+    {#text#}
+    {% if filters[filter]['type'] == 'text' %}
+        <div class="input-group mb-1">
+            <span class="input-group-text" id="basic-addon1" style="width: 300px">{{ filters[filter]['name'] }}</span>
+            <input type = "text" id = "{{ filter }}" class="form-control">
+{#            <label for="{{ filter }}">{{ filters[filter]['name'] }}</label>#}
+        </div>
+    {% endif %}
+
+    {#textarea#}
+    {% if filters[filter]['type'] == 'textarea' %}
+        <div class="input-group mb-1">
+            <span class="input-group-text" style="width: 100px">{{ filters[filter]['name'] }}</span>
+            <textarea  id = "{{ filter }}" class="form-control" data-clear-btn="true" rows="1"></textarea>
+{#            <label for="{{ filter }}">{{ filters[filter]['name'] }}</label>#}
+        </div>
+    {% endif %}
+
+    </div>
+{% endfor %}
+<button type="button" class="btn btn-outline-primary" id="run_report" style="width: 100%">Run Report</button>
+
+{#<div>#}
+{#    <div class="input-group mb-1">#}
+{#      <span class="input-group-text" id="basic-addon1" style="width: 100px">Program</span>#}
+{#      <select class="form-control" style="appearance: auto;">#}
+{#          <option>Opt 1</option>#}
+{#          <option>Opt 2</option>#}
+{#          <option>Opt 3</option>#}
+{#      </select>#}
+{#    </div>#}
+{#</div>#}
