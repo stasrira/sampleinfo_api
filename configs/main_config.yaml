@@ -17,11 +17,24 @@ DB:
 #    sp_rpt_lstsbycateg: exec usp_tr_get_latest_status_groupedby_categories @program_id = 2, @study_ids = '13', @pivot_by_field = 'operational_status'
 #    sp_rpt_lstsbyactgrp: exec usp_tr_get_latest_status_per_action_group @program_id = 2, @study_ids = '13', @pivot_by_field = 'action_group'
 
-    # sql calls to get contents for report filters
-#    sql_get_programs: Select * from vw_programs_for_filters order by option_name
-#    sql_get_studies: Select * from vw_studies_for_filters order by option_name
+    # sql calls views
     sql_view_metadata_stats: select * from vw_get_metadata_study_stats
     sql_view_aliquot_data_stats: select * from vw_get_aliquot_dataset_stats
+
+    # sql call for metadata dataset
+    sql_sp_metadata: exec usp_get_metadata
+    sql_sp_sampleinfo_dataset: usp_get_aliquot_dataset
+
+    # sql parameters
+    param_study_id: "@study_id = {study_id}"
+    param_study_group_id: "@study_group_id = {study_group_id}"
+    param_study_group_ids: "@study_group_ids = {study_group_ids}"
+    param_sample_ids: "@sample_ids = {sample_ids}"
+    param_sample_delim: "@sample_delim = {sample_delim}"
+    param_aliquot_ids: "@aliquot_ids = {aliquot_ids}"
+    param_aliquot_delim: "@aliquot_delim = {aliquot_delim}"
+    param_aliquot_id_contains: "@aliquot_id_contains = {aliquot_id_contains}"
+    param_dataset_type_id: "@dataset_type_id = {dataset_type_id}"
 
     # name of the stored proc to be used to load samples to DB
 #    mdb_sql_proc_load_sample: exec usp_load_single_sample @study_id = {study_id}, @sample_id ='{sample_id}', @json ='{smpl_json}', @dict_json='{dict_json}', @dict_path='{dict_path}', @data_source='{data_source}', @dict_update={dict_update}, @samlpe_update={samlpe_update}

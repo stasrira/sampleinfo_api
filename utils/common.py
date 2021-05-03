@@ -42,9 +42,10 @@ def setup_logger(m_cfg, log_dir_location, cur_proc_name_prefix = None):
 
     # lg_filename = time.strftime("%Y%m%d_%H%M%S", time.localtime()) + '.log'
     if not cur_proc_name_prefix:
-        lg_filename = '{}_{}'.format(time.strftime("%Y%m%d_%H%M%S", time.localtime()),'.log')
+        # lg_filename = '{}{}'.format(time.strftime("%Y%m%d_%H%M%S", time.localtime()),'.log')
+        lg_filename = '{}{}'.format(time.strftime("%Y%m%d", time.localtime()), '.log')
     else:
-        lg_filename = '{}_{}_{}'.format(cur_proc_name_prefix, time.strftime("%Y%m%d_%H%M%S", time.localtime()), '.log')
+        lg_filename = '{}_{}{}'.format(cur_proc_name_prefix, time.strftime("%Y%m%d", time.localtime()), '.log')
     # setup logger
 
     lg = setup_logger_common(common_logger_name, logging_level, wrkdir, lg_filename)  # logging_level
