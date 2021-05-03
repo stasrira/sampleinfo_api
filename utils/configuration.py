@@ -17,7 +17,7 @@ class ConfigData:
 
         if cfg_path and cm.file_exists(cfg_path):
             with open(cfg_path, 'r') as ymlfile:
-                self.cfg = yaml.load(ymlfile)
+                self.cfg = yaml.full_load (ymlfile)
             # self.prj_wrkdir = os.path.dirname(os.path.abspath(study_cfg_path))
             self.loaded = True
         else:
