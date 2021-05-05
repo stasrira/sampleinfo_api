@@ -125,7 +125,9 @@ def generate_view(view_name):
     if err and not err.exist():
         mlog.info('Proceeding to render the api response.')
         cm2.stop_logger(mlog, mlog_handler)
-        return jsonify(result), 200
+        # return jsonify(result), 200
+        return jsonify(data=result, status=200)
+        # return json.dumps(result, sort_keys=False)
         #     {
         #     'status': 'OK',
         #     'data': json.dumps(result, default=str)  # result
@@ -133,7 +135,7 @@ def generate_view(view_name):
     else:
         mlog.info('Proceeding to report an error.')
         cm2.stop_logger(mlog, mlog_handler)
-        return jsonify('Error retrieving data'), 400
+        return jsonify(message = 'Error retrieving data', status = 400)
         # return {
         #     'status': 'ERROR',
         #     'status_desc': 'Internal error',
@@ -157,11 +159,11 @@ def generate_metadata_dataset (study_id, study_group_id, sample_ids, sample_deli
     if err and not err.exist():
         mlog.info('Proceeding to render the api response.')
         cm2.stop_logger(mlog, mlog_handler)
-        return jsonify(result), 200
+        return jsonify(data = result, status = 200)
     else:
         mlog.info('Proceeding to report an error.')
         cm2.stop_logger(mlog, mlog_handler)
-        return jsonify('Error retrieving data'), 400
+        return jsonify(message = 'Error retrieving data', status = 400)
 
 def generate_sampleinfo_dataset (study_group_ids, dataset_type_id, aliquot_ids, aliquot_delim, aliquot_id_contains):
     mcfg = cm2.get_main_config()
@@ -181,11 +183,11 @@ def generate_sampleinfo_dataset (study_group_ids, dataset_type_id, aliquot_ids, 
     if err and not err.exist():
         mlog.info('Proceeding to render the api response.')
         cm2.stop_logger(mlog, mlog_handler)
-        return jsonify(result), 200
+        return jsonify(data=result, status=200)
     else:
         mlog.info('Proceeding to report an error.')
         cm2.stop_logger(mlog, mlog_handler)
-        return jsonify('Error retrieving data'), 400
+        return jsonify(message = 'Error retrieving data', status = 400)
 
 
 
