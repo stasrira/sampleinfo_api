@@ -110,3 +110,6 @@ venv.bak/
 #pycharm workspace file
 /.idea
 
+#examples of webserver setup deployment files
+sampleinfo_api.service
+sampleinfo_api.nginx

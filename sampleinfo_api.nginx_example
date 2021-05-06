@@ -1,0 +1,12 @@
+server {
+    # listen 81;
+	listen 81 default_server; # 81 is a port it will be listening to
+	listen [::]:81 default_server;
+	server_name _; # if no specific domain is present, use this as default
+	# server_name your_domain www.your_domain;
+
+    location / {
+        include proxy_params;
+		proxy_pass http://unix:{absolute path to project directory}/sampleinfo.sock;
+    }
+}
