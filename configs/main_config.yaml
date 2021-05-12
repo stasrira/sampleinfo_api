@@ -13,10 +13,6 @@ DB:
     env_db_user_name: ST_DB_USER_NAME
     env_db_user_pwd: ST_DB_USER_PWD
 
-    # stored procedures for running transaction reports
-#    sp_rpt_lstsbycateg: exec usp_tr_get_latest_status_groupedby_categories @program_id = 2, @study_ids = '13', @pivot_by_field = 'operational_status'
-#    sp_rpt_lstsbyactgrp: exec usp_tr_get_latest_status_per_action_group @program_id = 2, @study_ids = '13', @pivot_by_field = 'action_group'
-
     # sql calls views
     sql_view_metadata_stats: select * from vw_get_metadata_study_stats
     sql_view_aliquot_data_stats: select * from vw_get_aliquot_dataset_stats
@@ -27,51 +23,24 @@ DB:
 
     # sql parameters
     param_study_id: "@study_id = {study_id}"
-    param_study_group_id: "@study_group_id = {study_group_id}"
-    param_study_group_ids: "@study_group_ids = {study_group_ids}"
-    param_sample_ids: "@sample_ids = {sample_ids}"
-    param_sample_delim: "@sample_delim = {sample_delim}"
-    param_aliquot_ids: "@aliquot_ids = {aliquot_ids}"
-    param_aliquot_delim: "@aliquot_delim = {aliquot_delim}"
-    param_aliquot_id_contains: "@aliquot_id_contains = {aliquot_id_contains}"
+    param_center_id: "@center_id = {center_id}"
+    param_center_ids: "@center_ids = '{center_ids}'"
+    param_sample_ids: "@sample_ids = '{sample_ids}'"
+    param_sample_delim: "@sample_delim = '{sample_delim}'"
+    param_aliquot_ids: "@aliquot_ids = '{aliquot_ids}'"
+    param_aliquot_delim: "@aliquot_delim = '{aliquot_delim}'"
+    param_aliquot_id_contains: "@aliquot_id_contains = '{aliquot_id_contains}'"
     param_dataset_type_id: "@dataset_type_id = {dataset_type_id}"
 
-    # name of the stored proc to be used to load samples to DB
-#    mdb_sql_proc_load_sample: exec usp_load_single_sample @study_id = {study_id}, @sample_id ='{sample_id}', @json ='{smpl_json}', @dict_json='{dict_json}', @dict_path='{dict_path}', @data_source='{data_source}', @dict_update={dict_update}, @samlpe_update={samlpe_update}
-#
-#    # name of field templates for updating of stored procedure parameters (specified in "mdb_sql_proc_load_sample")
-#    fld_tmpl_study_id: '{study_id}'
-#    fld_tmpl_sample_id: '{sample_id}'
-#    fld_tmpl_row_json: '{smpl_json}'
-#    fld_tmpl_dict_json: '{dict_json}'
-#    fld_tmpl_dict_path: '{dict_path}'
-#    fld_tmpl_filepath: '{data_source}'
-#    fld_tmpl_dict_update: '{dict_update}'
-#    fld_tmpl_samlpe_update: '{samlpe_update}'
-
 Location:
-    # path to the folder where all data files are located
-    #local path
-    #data_folder: D:/MounSinai/MoTrPac_API/ProgrammaticConnectivity/MountSinai_metadata_file_loader/datafiles
-    # production path
-    # data_folder: J:\Metadata_Processing
 
     #name of the folder where all logs files will be stored
     log_folder_name: logs
-    #processed_folder_name: processed
-    #processed_file_copies_max_number: -1 #number of copies of file allowed; -1 - stands for unlimited number of copies, if ommitted the default value from GlobalConst will be used
 
 Logging:
-    #main log - log created by the main application
-    #file log - log created for each processed file
-
     #defines log levels to be used for "main" and "file" logs. Usual values are INFO and DEBUG
     main_log_level: INFO  # DEBUG
-    #file_log_level: DEBUG
-
-    #name for the each type of log (moved to global_const.py)
-    #main_log_name: main_log
-    #file_log_name: file_processing_log
+    keep_log_days: 7 # number of days to keep log files
 
 Email:
     #default settings for sending emails
@@ -82,6 +51,10 @@ Email:
     sent_to_emails: stasrirak.ms@gmail.com,stas.rirak@mssm.edu
     send_emails: True # expected values: True, False
 
+    # name of the application to be reported in the email notifications
+    application_id: SampleInfo API - Test server
+    email_subject: SealfonLab SampleInfo API - error occurred!
+
 Validate:
     # list of environment variable required to be set for a current user in order to run the application
     environment_variables:
@@ -91,49 +64,3 @@ Validate:
             - ST_DB_USER_NAME
             - ST_DB_USER_PWD
             - ST_SMTP_SERVER
-Reports:
-    Tracking:
-        -
-            rep_name: Counts of Latest Statuses of Aliquots Grouped By Category
-            rep_id: lstsbycateg
-            sql: exec usp_tr_get_latest_status_groupedby_categories @program_id = {program_id}, @study_ids = '{study_id}', @aliquot_ids = '{aliquot_ids}', @date_from = '{date_from}', @date_to = '{date_to}', @pivot_by_field = '{pivot_by}'
-            filters:
-                - {id: program_id, name: Program, type: dropdown}
-                - {id: study_id, name: Studies, type: multiselect}
-                -
-                    id: pivot_by
-                    name: Pivot By
-                    type: dropdown
-                    options:
-                        - {id: Exposure, name: Exposure}
-                        - {id: Center, name: Center}
-                        - {id: SpecimenPrep, name: Specimen Prep}
-                        - {id: assay_name, name: Assay Name}
-                        - {id: operational_status, name: Operational Status}
-                - { id: date_from, name: Date From, type: date }
-                - { id: date_to, name: Date To, type: date }
-                - { id: aliquot_ids, name: Aliquot Ids, type: textarea }
-            helptip: This is a summary report. It shows counts of aliquots based on the associated latest statuses assigned to those and grouped by categories of the project.
-        -
-            rep_name: Detailed - Latest Status Grouped By Action Group
-            rep_id: lstsbyactgrp
-            sql: exec usp_tr_get_latest_status_per_action_group @program_id = {program_id}, @study_ids = '{study_id}', @aliquot_ids = '{aliquot_ids}', @date_from = '{date_from}', @date_to = '{date_to}', @pivot_by_field = '{pivot_by}'
-            filters:
-                - { id: program_id, name: Program, type: dropdown }
-                - { id: study_id, name: Studies, type: multiselect }
-                -
-                    id: pivot_by
-                    name: Pivot By
-                    type: dropdown
-                    options:
-                        - { id: Exposure, name: Exposure }
-                        - { id: Center, name: Center }
-                        - { id: SpecimenPrep, name: Specimen Prep }
-                        - { id: action_group, name: Action Group }
-#                        - { id: action_name, name: Action Name }
-#                        - { id: action_name_alias, name: Action Alias }
-                        - { id: trans_owner, name: Process Owner }
-                - { id: date_from, name: Date From, type: date }
-                - { id: date_to, name: Date To, type: date }
-                - { id: aliquot_ids, name: Aliquot Ids, type: textarea }
-            helptip: This is a detailed report. It shows list of aliquots with the latest statuses of each aliquot per action group (Assay, Raw-Data, QC, BIC, Billing). Since the same aliquot can be used for multiple assays, each aliquot/assay combiantion is present in the report.

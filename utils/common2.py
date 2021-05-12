@@ -1,12 +1,9 @@
 import os, inspect
 from pathlib import Path
-import traceback
 from utils import global_const as gc
-# from utils import setup_logger_common TODO: figure out how to import setup_logger_common from utils module
-# from utils import setup_logger_common
 from utils import ConfigData
 from utils import common as cm
-from utils import send_email as email
+from flask import request
 
 
 """
@@ -40,15 +37,41 @@ def get_logger(process_log_id = None):
 def stop_logger(logger, handler):
     cm.stop_logger(logger, handler)
 
+def clean_log_directory():
+    import time
+
+    m_cfg = get_main_config()
+    # identify log directory
+    cur_dir = Path(os.path.dirname(os.path.abspath(__file__))).parent.absolute()
+    log_dir = Path(cur_dir) / gc.LOG_FOLDER_NAME
+    # number of days to keep logs
+    keep_log_days = m_cfg.get_value('Logging/keep_log_days')
+    now = time.time()
+    cutoff = now - (int(keep_log_days) * 86400)
+    # get list of log files
+    files = os.listdir(log_dir)
+    # loop through files
+    for file in files:
+        if file.endswith(".log"):
+            file_path = str(Path(str(log_dir) + '/' + file))
+            if os.path.isfile(file_path):
+                t = os.stat(file_path)
+                c = t.st_mtime  # st_ctime - creation time, st_mtime - modification time
+
+                # delete file if older than 10 days
+                if c < cutoff:
+                    os.remove(file_path)
+
 def check_env_variables(call_from_file, log_ref):
+    valid_msg = ''
     if not gc.env_validated:
         # current function: inspect.stack()[0][3], current caller: inspect.stack()[1][3]
         caller = inspect.stack()[1][3]  # current function name
         # cur_file = os.path.realpath(call_from_file)  # current file name
         # validate expected environment variables; if some variable are not present, abort execution
-        gc.env_validated = validate_available_envir_variables(log_ref, gc.main_cfg, ['default'],
+        gc.env_validated, valid_msg = validate_available_envir_variables(log_ref, gc.main_cfg, ['default'],
                                                                  '{}=>{}'.format(call_from_file, caller))
-    return gc.env_validated
+    return gc.env_validated, valid_msg
 
 # Validate expected Environment variables; if some variable are not present, abort execution
 # setup environment variable sources:
@@ -84,28 +107,36 @@ def validate_available_envir_variables (mlog, m_cfg, env_cfg_groups = None, proc
                 .format(process_name if process_name else 'Unknown', missing_env_vars)
             if mlog:
                 mlog.error(_str)
-            #return False
-            # TODO: decide if sending email is needed
-            # send notification email alerting about the error case
-            email_subject = 'SampleTracking Web - error occurred!'
-            email_body = _str
-            try:
-                email.send_yagmail(
-                    emails_to=m_cfg.get_value('Email/sent_to_emails'),
-                    subject=email_subject,
-                    message=email_body
-                    # ,attachment_path = email_attchms_study
-                )
-            except Exception as ex:
-                # report unexpected error during sending emails to a log file and continue
-                _str = 'Unexpected Error "{}" occurred during an attempt to send an email.\n{}'.\
-                    format(ex, traceback.format_exc())
-                if mlog:
-                    mlog.critical(_str)
 
-            return False
+            # # TODO: decide if sending email is needed
+            # # send notification email alerting about the error case
+            # email_subject = m_cfg.get_value('Email/email_subject')
+            # email_body = 'Application: {}\nError message: {}'\
+            #     .format(m_cfg.get_value('Email/application_id'), _str)
+            # try:
+            #     email.send_yagmail(
+            #         emails_to=m_cfg.get_value('Email/sent_to_emails'),
+            #         subject=email_subject,
+            #         message=email_body
+            #         # ,attachment_path = email_attchms_study
+            #     )
+            # except Exception as ex:
+            #     # report unexpected error during sending emails to a log file and continue
+            #     _str = 'Unexpected Error "{}" occurred during an attempt to send an email.\n{}'.\
+            #         format(ex, traceback.format_exc())
+            #     if mlog:
+            #         mlog.critical(_str)
+
+            return False, _str
         else:
             if mlog:
                 mlog.info('Process: {}. All required environment variables were found.'
                       .format(process_name if process_name else 'Unknown'))
-            return True
+            return True, ''
+
+# get client ip based on the current request
+def get_client_ip():
+    if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
+        return request.environ['REMOTE_ADDR']
+    else:
+        return request.environ['HTTP_X_FORWARDED_FOR']  # if behind a proxy
