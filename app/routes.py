@@ -4,7 +4,7 @@ from datetime import datetime
 import inspect
 from utils import common2 as cm2
 from utils import reports as rp
-from errors import WebError
+from swagger.api_spec import spec
 
 
 @app.route('/')
@@ -28,6 +28,19 @@ def index():
 # returns aliqout dataset stats
 @app.route('/api/sampleinfo/stats')
 def api_sampleinfo_stats():
+    """
+        ---
+        get:
+          description: Retrieves statistic information for all SamlpeInfo datasets
+          responses:
+            '200':
+              description: call successful
+              content:
+                application/json:
+                  schema: OutputSchema
+          tags:
+              - sampleinfo_stats
+        """
     return generate_view ('sql_view_aliquot_data_stats')
 
 # returns metadata stats dataset
@@ -88,6 +101,10 @@ def api_sampleinfo_dataset():
     return generate_sampleinfo_dataset(center_ids, dataset_type_id, aliquot_ids, aliquot_delim, aliquot_id_contains)
     # return 'api_sampleinfo_dataset, study_group_id = {}, sample ids = {}, sample_delim = {}, study_id = {}'. \
     #     format(study_group_id, sample_ids, sample_delim, study_id)
+
+@app.route("/api/swagger.json")
+def create_swagger_spec():
+    return jsonify(spec.to_dict())
 
 def generate_view(view_name):
     mcfg = cm2.get_main_config()
