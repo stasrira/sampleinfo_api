@@ -9,6 +9,7 @@ from swagger.api_spec import spec
 
 @app.route('/')
 @app.route('/index')
+@app.route('/api')
 def index():
     #verify main app settings and get config and logging references
     mcfg = cm2.get_main_config()
@@ -19,7 +20,10 @@ def index():
         request_datetime = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         mlog.info('Successful processing of a request, reporting status 200.')
         cm2.stop_logger(mlog, mlog_handler)
-        return jsonify(message = 'SealfonLab SampleInfo API Up and Running. Date: {}'.format(request_datetime), status = 200)
+        r=request
+        return jsonify(message = 'SealfonLab SampleInfo API Up and Running. Date: {}. '
+                                 'For more details navigate to {}/api/docs'
+                       .format(request_datetime, request.base_url), status = 200)
     else:
         mlog.info('Errors were reported during validating of environment variables or reading the main config file.')
         cm2.stop_logger(mlog, mlog_handler)
@@ -29,23 +33,36 @@ def index():
 @app.route('/api/sampleinfo/stats')
 def api_sampleinfo_stats():
     """
-        ---
-        get:
-          description: Retrieves statistic information for all SamlpeInfo datasets
-          responses:
-            '200':
-              description: call successful
-              content:
-                application/json:
-                  schema: OutputSchema
-          tags:
-              - sampleinfo_stats
-        """
+    ---
+    get:
+      description: Retrieves statistic information for all SamlpeInfo datasets
+      responses:
+        '200':
+          description: call successful
+          content:
+            application/json:
+              schema: OutputSchema
+      tags:
+          - statistic info
+    """
     return generate_view ('sql_view_aliquot_data_stats')
 
 # returns metadata stats dataset
 @app.route('/api/metadata/stats')
 def api_metadata_stats():
+    """
+    ---
+    get:
+      description: Retrieves statistic information for all Metadata datasets
+      responses:
+        '200':
+          description: call successful
+          content:
+            application/json:
+              schema: OutputSchema
+      tags:
+          - statistic info
+    """
     return generate_view ('sql_view_metadata_stats')
 
 # returns metadata dataset for the given study_id parameter (required)
@@ -53,6 +70,41 @@ def api_metadata_stats():
 # optional parameters can be provided as get or post parameters
 @app.route('/api/metadata/study/<study_id>', methods=('get', 'post'))
 def api_metadata_by_study(study_id):
+    """
+    ---
+    get:
+      description: Retrieves Metadata dataset based on the provided study_id value
+      parameters:
+        - name: study_id
+          in: path
+          description: study_id
+          type: integer
+          required: true
+      responses:
+        '200':
+          description: call successful
+          content:
+            application/json:
+              schema: OutputSchema
+      tags:
+          - metadata
+    post:
+      description: Retrieves Metadata dataset based on the provided study_id value
+      parameters:
+        - name: study_id
+          in: path
+          description: study_id
+          type: integer
+          required: true
+      responses:
+        '200':
+          description: call successful
+          content:
+            application/json:
+              schema: OutputSchema
+      tags:
+          - metadata
+    """
     # get request parameters from get or post, from query string or form
     sample_ids = request.values.get('sample_ids')
     sample_delim = request.values.get('sample_delim')
@@ -66,6 +118,41 @@ def api_metadata_by_study(study_id):
 # optional parameters can be provided as get or post parameters
 @app.route('/api/metadata/center/<center_id>', methods=('get', 'post'))
 def api_metadata_by_center(center_id):
+    """
+    ---
+    get:
+      description: Retrieves Metadata dataset based on the provided center_id value
+      parameters:
+        - name: center_id
+          in: path
+          description: center_id
+          type: integer
+          required: true
+      responses:
+        '200':
+          description: call successful
+          content:
+            application/json:
+              schema: OutputSchema
+      tags:
+          - metadata
+    post:
+      description: Retrieves Metadata dataset based on the provided center_id value
+      parameters:
+        - name: center_id
+          in: path
+          description: center_id
+          type: integer
+          required: true
+      responses:
+        '200':
+          description: call successful
+          content:
+            application/json:
+              schema: OutputSchema
+      tags:
+          - metadata
+    """
     # get request parameters from get or post, from query string or form
     sample_ids = request.values.get('sample_ids')
     sample_delim = request.values.get('sample_delim')
@@ -78,6 +165,82 @@ def api_metadata_by_center(center_id):
 # optional parameters can be provided as get or post parameters
 @app.route('/api/sampleinfo/center_datasettype/<center_ids>/<dataset_type_id>', methods=('get', 'post'))
 def api_sampleinfo_by_studygroup_datasettype(center_ids, dataset_type_id):
+    """
+    ---
+    get:
+      description: Retrieves SampleInfo dataset based on the provided "in-path" center_ids and dataset_type_id values with some optional "query" parameters
+      parameters:
+        - name: center_ids
+          in: path
+          description: center_ids
+          type: string
+          required: true
+        - name: dataset_type_id
+          in: path
+          description: dataset_type_id
+          type: integer
+          required: true
+        - name: aliquot_ids
+          in: query
+          description: aliquot_ids
+          type: string
+          required: false
+        - name: aliquot_delim
+          in: query
+          description: aliquot_delim
+          type: string
+          required: false
+        - name: aliquot_id_contains
+          in: query
+          description: aliquot_id_contains
+          type: string
+          required: false
+      responses:
+        '200':
+          description: call successful
+          content:
+            application/json:
+              schema: OutputSchema
+      tags:
+          - sampleinfo
+    post:
+      description: Retrieves SampleInfo dataset based on the provided "in-path" center_ids and dataset_type_id values with some optional "query" parameters
+      parameters:
+        - name: center_ids
+          in: path
+          description: center_ids
+          type: string
+          required: true
+        - name: dataset_type_id
+          in: path
+          description: dataset_type_id
+          type: integer
+          required: true
+        - name: aliquot_ids
+          in: query
+          description: aliquot_ids
+          type: string
+          required: false
+        - name: aliquot_delim
+          in: query
+          description: aliquot_delim
+          type: string
+          required: false
+        - name: aliquot_id_contains
+          in: query
+          description: aliquot_id_contains
+          type: string
+          required: false
+      responses:
+        '200':
+          description: call successful
+          content:
+            application/json:
+              schema: OutputSchema
+      tags:
+          - sampleinfo
+    """
+
     # get request parameters from get or post, from query string or form
     aliquot_ids = request.values.get('aliquot_ids')
     aliquot_delim = request.values.get('aliquot_delim')
@@ -92,6 +255,81 @@ def api_sampleinfo_by_studygroup_datasettype(center_ids, dataset_type_id):
 # optional parameters can be provided as get or post parameters
 @app.route('/api/sampleinfo/dataset/', methods=('get', 'post'))
 def api_sampleinfo_dataset():
+    """
+    ---
+    get:
+      description: Retrieves SampleInfo dataset based on the provided "query" center_ids and dataset_type_id values with some optional "query" parameters
+      parameters:
+        - name: center_ids
+          in: query
+          description: center_ids
+          type: string
+          required: true
+        - name: dataset_type_id
+          in: query
+          description: dataset_type_id
+          type: integer
+          required: true
+        - name: aliquot_ids
+          in: query
+          description: aliquot_ids
+          type: string
+          required: false
+        - name: aliquot_delim
+          in: query
+          description: aliquot_delim
+          type: string
+          required: false
+        - name: aliquot_id_contains
+          in: query
+          description: aliquot_id_contains
+          type: string
+          required: false
+      responses:
+        '200':
+          description: call successful
+          content:
+            application/json:
+              schema: OutputSchema
+      tags:
+          - sampleinfo
+    post:
+      description: Retrieves SampleInfo dataset based on the provided "query" center_ids and dataset_type_id values with some optional "query" parameters
+      parameters:
+        - name: center_ids
+          in: query
+          description: center_ids
+          type: string
+          required: true
+        - name: dataset_type_id
+          in: query
+          description: dataset_type_id
+          type: integer
+          required: true
+        - name: aliquot_ids
+          in: query
+          description: aliquot_ids
+          type: string
+          required: false
+        - name: aliquot_delim
+          in: query
+          description: aliquot_delim
+          type: string
+          required: false
+        - name: aliquot_id_contains
+          in: query
+          description: aliquot_id_contains
+          type: string
+          required: false
+      responses:
+        '200':
+          description: call successful
+          content:
+            application/json:
+              schema: OutputSchema
+      tags:
+          - sampleinfo
+    """
     # get request parameters from get or post, from query string or form
     aliquot_ids = request.values.get('aliquot_ids')
     aliquot_delim = request.values.get('aliquot_delim')
@@ -115,11 +353,6 @@ def generate_view(view_name):
     process_name = inspect.stack()[1][3]
 
     mlog.info('Processing request from "{}" for generating "{}" view.'.format(process_name, view_name))
-
-    # if view_name == 'sql_view_metadata_stats':
-    #     result, columns, err = rp.view_metadata_stats(mcfg, mlog)
-    # if view_name == 'sql_view_aliquot_data_stats':
-    #     result, columns, err = rp.view_aliquot_data_stats(mcfg, mlog)
 
     # get the dataset from the database
     result, columns, err = rp.get_veiw_data (mcfg, mlog, view_name)
@@ -170,7 +403,7 @@ def generate_metadata_dataset (study_id, center_id, sample_ids, sample_delim):
 
 def generate_sampleinfo_dataset (center_ids, dataset_type_id, aliquot_ids, aliquot_delim, aliquot_id_contains):
     mcfg = cm2.get_main_config()
-    mlog, mlog_handler = cm2.get_logger(get_client_ip())
+    mlog, mlog_handler = cm2.get_logger(cm2.get_client_ip())
     process_name = inspect.stack()[1][3]
     dataset_name = 'sql_sp_sampleinfo_dataset'
 

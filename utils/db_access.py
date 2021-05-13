@@ -62,10 +62,15 @@ class MetadataDB:
         try:
             cursor = self.conn.cursor()
             cursor.execute(sql_str)
-            # returned recordsets
 
+            # returned recordsets
             columns = cursor.description
-            result = [{columns[index][0]: column for index, column in enumerate(value)} for value in cursor.fetchall()]
+            if columns:
+                # if some data was returned
+                result = [{columns[index][0]: column for index, column in enumerate(value)} for value in cursor.fetchall()]
+            else:
+                # no data was returned and no errors were reported
+                result = []
 
             return result, columns
 

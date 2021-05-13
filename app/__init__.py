@@ -50,7 +50,7 @@ with app.test_request_context():
     for fn_name in app.view_functions:
         if fn_name == 'static':
             continue
-        print(f"Loading swagger docs for function: {fn_name}")
+        # print(f"Loading swagger docs for function: {fn_name}")
         view_fn = app.view_functions[fn_name]
         spec.path(view=view_fn)
 
