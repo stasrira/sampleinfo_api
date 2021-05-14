@@ -5,3 +5,18 @@ The following are locations where to the gunicorn and nginx related config files
 sampleinfo_api.service: /etc/systemd/system/sampleinfo_api.service
 sampleinfo_api.nginx: /etc/nginx/sites-available/sampleinfo_api.nginx
 sampleinfo_api.nginx (symlink to the file in the sites-available dir): /etc/nginx/sites-enabled/sampleinfo_api.nginx
+
+After applying changes, restart gunicorn and nginx:
+# check status (before/after):
+sudo systemctl status sampleinfo_api
+# if runs for first time:
+sudo systemctl start sampleinfo_api
+# if already running, restart:
+sudo systemctl restart sampleinfo_api
+#enable service
+sudo systemctl enable sampleinfo_api
+
+# nginx - check for syntax errors:
+sudo nginx -t
+# restart nginx
+sudo systemctl restart nginx
