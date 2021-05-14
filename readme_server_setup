@@ -1,3 +1,7 @@
 Use the following as a guide to serve the flask application on Ubuntu 20.04:
 https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-gunicorn-and-nginx-on-ubuntu-20-04
 
+The following are locations where to the gunicorn and nginx related config files should be copied:
+sampleinfo_api.service: /etc/systemd/system/sampleinfo_api.service
+sampleinfo_api.nginx: /etc/nginx/sites-available/sampleinfo_api.nginx
+sampleinfo_api.nginx (symlink to the file in the sites-available dir): /etc/nginx/sites-enabled/sampleinfo_api.nginx
