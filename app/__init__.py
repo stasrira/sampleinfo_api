@@ -10,6 +10,7 @@ from utils import common2 as cm2
 from errors import WebError
 import traceback
 from flask import request
+from swagger.api_spec import spec
 
 def handle_error(error):
     code = 500
@@ -42,3 +43,16 @@ def handle_error(error):
 
 for exc in default_exceptions:
     app.register_error_handler(exc, handle_error)
+
+# swagger related
+with app.test_request_context():
+    # register all swagger documented functions here
+    for fn_name in app.view_functions:
+        if fn_name == 'static':
+            continue
+        # print(f"Loading swagger docs for function: {fn_name}")
+        view_fn = app.view_functions[fn_name]
+        spec.path(view=view_fn)
+
+from swagger import swagger_ui_blueprint, SWAGGER_URL
+app.register_blueprint(swagger_ui_blueprint, url_prefix=SWAGGER_URL)
