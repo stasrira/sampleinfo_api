@@ -1,7 +1,8 @@
 from app import app
-from flask import request, jsonify
+from flask import request, jsonify, send_from_directory
 from datetime import datetime
 import inspect
+import os
 from utils import common2 as cm2
 from utils import reports as rp
 from swagger.api_spec import spec
@@ -28,6 +29,11 @@ def index():
         mlog.info('Errors were reported during validating of environment variables or reading the main config file.')
         cm2.stop_logger(mlog, mlog_handler)
         return jsonify(message = 'SealfonLab SampleInfo API - Errors encountered during retrieving data.', status = 400)
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'),
+                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 # returns aliqout dataset stats
 @app.route('/api/sampleinfo/stats')
