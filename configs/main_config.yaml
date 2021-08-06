@@ -40,7 +40,7 @@ Location:
 Logging:
     #defines log levels to be used for "main" and "file" logs. Usual values are INFO and DEBUG
     main_log_level: INFO  # DEBUG
-    keep_log_days: 7 # number of days to keep log files
+    keep_log_days: 60 # number of days to keep log files
 
 Email:
     #default settings for sending emails
