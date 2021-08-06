@@ -39,8 +39,14 @@ def stop_logger(logger, handler):
 
 def clean_log_directory():
     import time
+    from datetime import datetime
+
+    # print ('Starting clean_log_directory, {}'.format(datetime.now().strftime("%d/%m/%Y %H:%M:%S")))
 
     m_cfg = get_main_config()
+    mlog, mlog_handler = get_logger('logger_cleaner')
+    mlog.info("Starting log directory cleanup.")
+
     # identify log directory
     cur_dir = Path(os.path.dirname(os.path.abspath(__file__))).parent.absolute()
     log_dir = Path(cur_dir) / gc.LOG_FOLDER_NAME
@@ -48,19 +54,25 @@ def clean_log_directory():
     keep_log_days = m_cfg.get_value('Logging/keep_log_days')
     now = time.time()
     cutoff = now - (int(keep_log_days) * 86400)
+    mlog.info("Current setting for number of days to keep log files: {}".format(keep_log_days))
+    mlog.info("Current cutoff date/time for deletion of the log files: {}".format(cutoff))
     # get list of log files
     files = os.listdir(log_dir)
     # loop through files
     for file in files:
         if file.endswith(".log"):
             file_path = str(Path(str(log_dir) + '/' + file))
+            mlog.info("Checking file {}, full path: {}".format(file, file_path))
             if os.path.isfile(file_path):
                 t = os.stat(file_path)
                 c = t.st_mtime  # st_ctime - creation time, st_mtime - modification time
-
+                mlog.info("Current file's date/time stamp: {}".format(c))
                 # delete file if older than 10 days
                 if c < cutoff:
                     os.remove(file_path)
+                    mlog.info("The file {} was recognized as older than the cutoff point and was deleted.".format(file))
+    mlog.info("Log directory clean was completed.")
+    stop_logger(mlog, mlog_handler)
 
 def check_env_variables(call_from_file, log_ref):
     valid_msg = ''
