@@ -19,15 +19,17 @@ def index():
 
     if mcfg and env_validated:
         request_datetime = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        mlog.info('Successful processing of a request, reporting status 200.')
-        cm2.stop_logger(mlog, mlog_handler)
+        if mlog:
+            mlog.info('Successful processing of a request, reporting status 200.')
+            cm2.stop_logger(mlog, mlog_handler)
         r=request
         return jsonify(message = 'SealfonLab SampleInfo API Up and Running. Date: {}. '
                                  'For more details navigate to {}/api/docs'
                        .format(request_datetime, request.base_url), status = 200)
     else:
-        mlog.info('Errors were reported during validating of environment variables or reading the main config file.')
-        cm2.stop_logger(mlog, mlog_handler)
+        if mlog:
+            mlog.info('Errors were reported during validating of environment variables or reading the main config file.')
+            cm2.stop_logger(mlog, mlog_handler)
         return jsonify(message = 'SealfonLab SampleInfo API - Errors encountered during retrieving data.', status = 400)
 
 @app.route('/favicon.ico')
@@ -358,15 +360,17 @@ def generate_view(view_name):
     # err = None
     process_name = inspect.stack()[1][3]
 
-    mlog.info('Processing request from "{}" for generating "{}" view.'.format(process_name, view_name))
+    if mlog:
+        mlog.info('Processing request from "{}" for generating "{}" view.'.format(process_name, view_name))
 
     # get the dataset from the database
     result, columns, err = rp.get_veiw_data (mcfg, mlog, view_name)
 
     # check for errors and create an output
     if err and not err.exist():
-        mlog.info('Proceeding to render the api response.')
-        cm2.stop_logger(mlog, mlog_handler)
+        if mlog:
+            mlog.info('Proceeding to render the api response.')
+            cm2.stop_logger(mlog, mlog_handler)
         # return jsonify(result), 200
         return jsonify(data=result, status=200)
         # return json.dumps(result, sort_keys=False)
@@ -390,7 +394,8 @@ def generate_metadata_dataset (study_id, center_id, sample_ids, sample_delim):
     process_name = inspect.stack()[1][3]
     dataset_name = 'sql_sp_metadata'
 
-    mlog.info('Processing request from "{}" for generating metadata dataset.'.format(process_name))
+    if mlog:
+        mlog.info('Processing request from "{}" for generating metadata dataset.'.format(process_name))
 
     # get the dataset from the database
     result, columns, err = rp.get_dataset(mcfg, mlog, dataset_name,
@@ -399,12 +404,14 @@ def generate_metadata_dataset (study_id, center_id, sample_ids, sample_delim):
 
     # check for errors and create an output
     if err and not err.exist():
-        mlog.info('Proceeding to render the api response.')
-        cm2.stop_logger(mlog, mlog_handler)
+        if mlog:
+            mlog.info('Proceeding to render the api response.')
+            cm2.stop_logger(mlog, mlog_handler)
         return jsonify(data = result, status = 200)
     else:
-        mlog.info('Proceeding to report an error.')
-        cm2.stop_logger(mlog, mlog_handler)
+        if mlog:
+            mlog.info('Proceeding to report an error.')
+            cm2.stop_logger(mlog, mlog_handler)
         return jsonify(message = 'Error retrieving data', status = 400)
 
 def generate_sampleinfo_dataset (center_ids, dataset_type_id, aliquot_ids, aliquot_delim, aliquot_id_contains):
@@ -413,7 +420,8 @@ def generate_sampleinfo_dataset (center_ids, dataset_type_id, aliquot_ids, aliqu
     process_name = inspect.stack()[1][3]
     dataset_name = 'sql_sp_sampleinfo_dataset'
 
-    mlog.info('Processing request from "{}" for generating metadata dataset.'.format(process_name))
+    if mlog:
+        mlog.info('Processing request from "{}" for generating metadata dataset.'.format(process_name))
 
     # get the dataset from the database
     result, columns, err = rp.get_dataset(mcfg, mlog, dataset_name,
@@ -423,10 +431,12 @@ def generate_sampleinfo_dataset (center_ids, dataset_type_id, aliquot_ids, aliqu
 
     # check for errors and create an output
     if err and not err.exist():
-        mlog.info('Proceeding to render the api response.')
-        cm2.stop_logger(mlog, mlog_handler)
+        if mlog:
+            mlog.info('Proceeding to render the api response.')
+            cm2.stop_logger(mlog, mlog_handler)
         return jsonify(data=result, status=200)
     else:
-        mlog.info('Proceeding to report an error.')
-        cm2.stop_logger(mlog, mlog_handler)
+        if mlog:
+            mlog.info('Proceeding to report an error.')
+            cm2.stop_logger(mlog, mlog_handler)
         return jsonify(message = 'Error retrieving data', status = 400)

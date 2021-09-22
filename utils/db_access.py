@@ -57,7 +57,8 @@ class MetadataDB:
         if not self.conn:
             self.open_connection()
         # sql_str = self.cfg.get_item_by_key('DB/sp_rpt_lstsbycateg').strip()
-        logger_obj.info('SQL call = {}'.format(sql_str))
+        if logger_obj:
+            logger_obj.info('SQL call = {}'.format(sql_str))
 
         try:
             cursor = self.conn.cursor()
@@ -80,5 +81,6 @@ class MetadataDB:
                    'used SQL script "{}". Here is the traceback: \n{} '.format(
                     ex, process_name, sql_str, traceback.format_exc())
             error_obj.add_error(_str, send_email=True)
-            logger_obj.error(_str)
+            if logger_obj:
+                logger_obj.error(_str)
 

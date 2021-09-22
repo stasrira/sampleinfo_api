@@ -1,6 +1,7 @@
 # main global references
 main_cfg = None
 env_validated = False
+custom_logging = False
 
 # ========== config file names
 # main config file name

@@ -2,6 +2,8 @@ from app import app
 from os import environ, path
 from dotenv import load_dotenv
 from flask_apscheduler import APScheduler
+from utils import common2 as cm2
+from utils import global_const as gc
 
 # load environment variables from files
 basedir = path.abspath(path.dirname(__file__))
@@ -24,6 +26,18 @@ if __name__ == "__main__":
     host = environ.get('FLASK_RUN_HOST')
     port = environ.get('FLASK_RUN_PORT')
     # test = environ.get('ST_DB_USER_NAME')
+
+    # get reference for the main config file
+    mcfg = cm2.get_main_config()
+    # get a config value defining if the custom logging should be used
+    custom_logging = mcfg.get_item_by_key(('Logging/custom_logging'))
+    try:
+        import distutils.util as dist_util
+        # attempt to convert the value to a boolean, in case of an error, False will be assign
+        gc.custom_logging = bool(dist_util.strtobool(custom_logging))
+    except:
+        # assign False in case of an error
+        gc.custom_logging = False
 
     app.config.from_object(Scheduler_Config())
 

@@ -32,12 +32,14 @@ def handle_error(error):
                'Here is the traceback: \n{} '.format(
                 error.name, url, error.original_exception, traceback.format_exc())
         err.add_error(_str, code, send_email=True)
-        mlog.error(_str)
+        if mlog:
+            mlog.error(_str)
     else:
         # just record error in log
         msg = error.description
-        mlog.warning('Non-critical error has occurred during processing the following URL request: "{}". '
-                     'Code: {}. Error: {}'.format(url, code, error.name))
+        if mlog:
+            mlog.warning('Non-critical error has occurred during processing the following URL request: "{}". '
+                         'Code: {}. Error: {}'.format(url, code, error.name))
 
     return jsonify(message = msg, status = code)
 

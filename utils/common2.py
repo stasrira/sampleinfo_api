@@ -22,14 +22,20 @@ def get_main_config():
 
 # setup logger for the current web request
 def get_logger(process_log_id = None):
-    if not process_log_id:
-        process_log_id = inspect.stack()[1][3]
-    # load main config file and get required values
-    m_cfg = get_main_config() #ConfigData(gc.MAIN_CONFIG_FILE)
+    if gc.custom_logging:
+        # if custom logging is allowed, create a log file
+        if not process_log_id:
+            process_log_id = inspect.stack()[1][3]
+        # load main config file and get required values
+        m_cfg = get_main_config() #ConfigData(gc.MAIN_CONFIG_FILE)
 
-    # setup application level logger
-    cur_dir = Path(os.path.dirname(os.path.abspath(__file__)))
-    mlog, mlog_handler = cm.setup_logger(m_cfg, cur_dir.parent.absolute(), process_log_id)
+        # setup application level logger
+        cur_dir = Path(os.path.dirname(os.path.abspath(__file__)))
+        mlog, mlog_handler = cm.setup_logger(m_cfg, cur_dir.parent.absolute(), process_log_id)
+    else:
+        # if custom logging is not allowed, set log variables to None
+        mlog = None
+        mlog_handler = None
 
     return mlog, mlog_handler
 

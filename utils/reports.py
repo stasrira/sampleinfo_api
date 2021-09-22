@@ -23,7 +23,8 @@ def get_veiw_data (mcfg, mlog, view_name):
             else:
                 _str = 'No SQL statement was retrieved from the config file the for "{}" view name'.format(view_name)
                 err.add_error(_str, send_email=True)
-                mlog.error(_str)
+                if mlog:
+                    mlog.error(_str)
 
         except Exception as ex:
             # print (ex)
@@ -31,7 +32,8 @@ def get_veiw_data (mcfg, mlog, view_name):
                    'Here is the traceback: \n{} '.format(
                 ex, process_name, traceback.format_exc())
             err.add_error(_str, send_email=True)
-            mlog.error(_str)
+            if mlog:
+                mlog.error(_str)
 
     return result, columns, err
 
@@ -74,7 +76,8 @@ def get_dataset (mcfg, mlog, dataset_name, **param_values):
             else:
                 _str = 'No SQL statement was retrieved from the config file the for "{}" view name'.format(dataset_name)
                 err.add_error(_str, send_email=True)
-                mlog.error(_str)
+                if mlog:
+                    mlog.error(_str)
 
         except Exception as ex:
             # print (ex)
@@ -82,7 +85,8 @@ def get_dataset (mcfg, mlog, dataset_name, **param_values):
                    'Here is the traceback: \n{} '.format(
                 ex, process_name, traceback.format_exc())
             err.add_error(_str, send_email=True)
-            mlog.error(_str)
+            if mlog:
+                mlog.error(_str)
 
     return result, columns, err
 
