@@ -30,7 +30,7 @@ if __name__ == "__main__":
     # get reference for the main config file
     mcfg = cm2.get_main_config()
     # get a config value defining if the custom logging should be used
-    custom_logging = mcfg.get_item_by_key(('Logging/custom_logging'))
+    custom_logging = mcfg.get_item_by_key('Logging/custom_logging')
     try:
         import distutils.util as dist_util
         # attempt to convert the value to a boolean, in case of an error, False will be assign

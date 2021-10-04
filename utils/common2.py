@@ -80,15 +80,24 @@ def clean_log_directory():
     mlog.info("Log directory clean was completed.")
     stop_logger(mlog, mlog_handler)
 
-def check_env_variables(call_from_file, log_ref):
+def check_env_variables(call_from_file, log_ref = None):
     valid_msg = ''
     if not gc.env_validated:
+        if not log_ref:
+            # if logger object was not provided, open a new log
+            mlog, mlog_handler = get_logger(get_client_ip())
         # current function: inspect.stack()[0][3], current caller: inspect.stack()[1][3]
         caller = inspect.stack()[1][3]  # current function name
         # cur_file = os.path.realpath(call_from_file)  # current file name
         # validate expected environment variables; if some variable are not present, abort execution
-        gc.env_validated, valid_msg = validate_available_envir_variables(log_ref, gc.main_cfg, ['default'],
-                                                                 '{}=>{}'.format(call_from_file, caller))
+        gc.env_validated, valid_msg = validate_available_envir_variables(
+            mlog if not log_ref else log_ref,
+            gc.main_cfg, ['default'],
+            '{}=>{}'.format(call_from_file, caller)
+        )
+        if mlog:
+            # close logging if it was open inside this function
+            stop_logger(mlog, mlog_handler)
     return gc.env_validated, valid_msg
 
 # Validate expected Environment variables; if some variable are not present, abort execution

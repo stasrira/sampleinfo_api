@@ -12,30 +12,38 @@ from swagger.api_spec import spec
 @app.route('/index')
 @app.route('/api')
 def index():
-    #verify main app settings and get config and logging references
+    # verify main app settings and get config and logging references
     mcfg = cm2.get_main_config()
-    mlog, mlog_handler = cm2.get_logger(cm2.get_client_ip())
-    env_validated = cm2.check_env_variables(__file__, mlog)
+    # mlog, mlog_handler = cm2.get_logger(cm2.get_client_ip())
+    env_validated = cm2.check_env_variables(__file__)
 
     if mcfg and env_validated:
         request_datetime = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        if mlog:
-            mlog.info('Successful processing of a request, reporting status 200.')
-            cm2.stop_logger(mlog, mlog_handler)
+        # if mlog:
+            # mlog.info('Successful processing of a request, reporting status 200.')
+            # cm2.stop_logger(mlog, mlog_handler)
         r=request
         return jsonify(message = 'SealfonLab SampleInfo API Up and Running. Date: {}. '
                                  'For more details navigate to {}/api/docs'
                        .format(request_datetime, request.base_url), status = 200)
     else:
-        if mlog:
-            mlog.info('Errors were reported during validating of environment variables or reading the main config file.')
-            cm2.stop_logger(mlog, mlog_handler)
+        # if mlog:
+            # mlog.info('Errors were reported during validating of environment variables or reading the main config file.')
+            # cm2.stop_logger(mlog, mlog_handler)
         return jsonify(message = 'SealfonLab SampleInfo API - Errors encountered during retrieving data.', status = 400)
 
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'),
                                'favicon.ico', mimetype='image/vnd.microsoft.icon')
+
+@app.route('/test_error_handling')
+def test_error_handling():
+    request_datetime = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    er1 = 0
+    test = 2 / er1
+    return jsonify(message = 'Response from test endpoint "test_error_handling". Date: {}. '
+                       .format(request_datetime), status = 200)
 
 # returns aliqout dataset stats
 @app.route('/api/sampleinfo/stats')
@@ -421,7 +429,7 @@ def generate_sampleinfo_dataset (center_ids, dataset_type_id, aliquot_ids, aliqu
     dataset_name = 'sql_sp_sampleinfo_dataset'
 
     if mlog:
-        mlog.info('Processing request from "{}" for generating metadata dataset.'.format(process_name))
+        mlog.info('Processing request from "{}" for generating sampleinfo dataset.'.format(process_name))
 
     # get the dataset from the database
     result, columns, err = rp.get_dataset(mcfg, mlog, dataset_name,

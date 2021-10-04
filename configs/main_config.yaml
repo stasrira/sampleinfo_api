@@ -39,7 +39,7 @@ Location:
 
 Logging:
     #defines log levels to be used for "main" and "file" logs. Usual values are INFO and DEBUG
-    custom_logging: False # Expected value True/False. If set to False, no logging will be performed
+    custom_logging: True # Expected value True/False. If set to False, no logging will be performed
     main_log_level: INFO  # DEBUG
     keep_log_days: 60 # number of days to keep log files
 
@@ -49,7 +49,7 @@ Email:
     env_smtp: ST_SMTP_SERVER
     smtp_server_port: 25
     default_from_email: stas.rirak@mssm.edu
-    sent_to_emails: stasrirak.ms@gmail.com,stas.rirak@mssm.edu
+    sent_to_emails: ['stasrirak.ms@gmail.com','stas.rirak@mssm.edu']
     send_emails: True # expected values: True, False
 
     # name of the application to be reported in the email notifications

@@ -20,12 +20,13 @@ def handle_error(error):
         code = error.code
     # url of the request initiated this error
     url = request.url
-    # define config and log objects
-    mcfg = cm2.get_main_config()
-    mlog, mlog_handler = cm2.get_logger(cm2.get_client_ip())
 
     if code == 500:
         # if 500 error has occurred, record error in log and send email
+        # define config and log objects
+        mcfg = cm2.get_main_config()
+        mlog, mlog_handler = cm2.get_logger(cm2.get_client_ip())
+
         err = WebError('UNHANDLED ERROR', mcfg, mlog)
         _str = 'UNEXPECTED UNHANDLED ERROR "{}" occurred during processing the following URL request: "{}"; ' \
                'The original exception that has triggered the error is "{}". ' \
@@ -33,13 +34,13 @@ def handle_error(error):
                 error.name, url, error.original_exception, traceback.format_exc())
         err.add_error(_str, code, send_email=True)
         if mlog:
-            mlog.error(_str)
+            mlog.critical(_str)
     else:
         # just record error in log
         msg = error.description
-        if mlog:
-            mlog.warning('Non-critical error has occurred during processing the following URL request: "{}". '
-                         'Code: {}. Error: {}'.format(url, code, error.name))
+        # if mlog:
+        #     mlog.warning('Non-critical error has occurred during processing the following URL request: "{}". '
+        #                  'Code: {}. Error: {}'.format(url, code, error.name))
 
     return jsonify(message = msg, status = code)
 
