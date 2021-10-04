@@ -83,6 +83,7 @@ def clean_log_directory():
 def check_env_variables(call_from_file, log_ref = None):
     valid_msg = ''
     if not gc.env_validated:
+        mlog = None
         if not log_ref:
             # if logger object was not provided, open a new log
             mlog, mlog_handler = get_logger(get_client_ip())
