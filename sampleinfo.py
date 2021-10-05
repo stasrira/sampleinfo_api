@@ -5,6 +5,7 @@ from flask_apscheduler import APScheduler
 from utils import common2 as cm2
 from utils import global_const as gc
 
+
 # load environment variables from files
 basedir = path.abspath(path.dirname(__file__))
 load_dotenv(path.join(basedir, '.flaskenv'))
@@ -30,13 +31,11 @@ if __name__ == "__main__":
     # get reference for the main config file
     mcfg = cm2.get_main_config()
     # get a config value defining if the custom logging should be used
-    custom_logging = mcfg.get_item_by_key('Logging/custom_logging')
-    try:
-        import distutils.util as dist_util
-        # attempt to convert the value to a boolean, in case of an error, False will be assign
-        gc.custom_logging = bool(dist_util.strtobool(custom_logging))
-    except:
-        # assign False in case of an error
+    custom_logging = mcfg.get_value('Logging/custom_logging')
+    if isinstance(custom_logging, bool):
+        gc.custom_logging = custom_logging
+    else:
+        # assign False as a default
         gc.custom_logging = False
 
     app.config.from_object(Scheduler_Config())

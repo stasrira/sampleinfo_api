@@ -377,7 +377,7 @@ def generate_view(view_name):
     # check for errors and create an output
     if err and not err.exist():
         if mlog:
-            mlog.info('Proceeding to render the api response.')
+            mlog.info('Received response from DB, proceeding to render the api response.')
             cm2.stop_logger(mlog, mlog_handler)
         # return jsonify(result), 200
         return jsonify(data=result, status=200)
@@ -413,7 +413,7 @@ def generate_metadata_dataset (study_id, center_id, sample_ids, sample_delim):
     # check for errors and create an output
     if err and not err.exist():
         if mlog:
-            mlog.info('Proceeding to render the api response.')
+            mlog.info('Received response from DB, proceeding to render the api response.')
             cm2.stop_logger(mlog, mlog_handler)
         return jsonify(data = result, status = 200)
     else:
@@ -440,7 +440,7 @@ def generate_sampleinfo_dataset (center_ids, dataset_type_id, aliquot_ids, aliqu
     # check for errors and create an output
     if err and not err.exist():
         if mlog:
-            mlog.info('Proceeding to render the api response.')
+            mlog.info('Received response from DB, proceeding to render the api response.')
             cm2.stop_logger(mlog, mlog_handler)
         return jsonify(data=result, status=200)
     else:
