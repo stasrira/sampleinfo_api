@@ -49,12 +49,12 @@ Email:
     env_smtp: ST_SMTP_SERVER
     smtp_server_port: 25
     default_from_email: stas.rirak@mssm.edu
-    sent_to_emails: ['stasrirak.ms@gmail.com','stas.rirak@mssm.edu']
+    send_to_emails: ['stasrirak.ms@gmail.com','stas.rirak@mssm.edu']
     send_emails: True # expected values: True, False
 
     # name of the application to be reported in the email notifications
-    application_id: SampleInfo API - Test server
-    email_subject: SealfonLab SampleInfo API - error occurred!
+    env_name: ST_ENV_NAME
+    application_id: SealfonLab SampleInfo API - {env_name} server
 
 Validate:
     # list of environment variable required to be set for a current user in order to run the application
@@ -65,3 +65,4 @@ Validate:
             - ST_DB_USER_NAME
             - ST_DB_USER_PWD
             - ST_SMTP_SERVER
+            - ST_ENV_NAME

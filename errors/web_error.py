@@ -1,4 +1,5 @@
 from .entity_error import EntityErrors
+import os
 
 
 class WebError(EntityErrors):
@@ -26,12 +27,18 @@ class WebError(EntityErrors):
         # print ('send email from error!!!')
         if self.mcfg:
             # send notification email alerting about the error
-            email_subject = self.mcfg.get_value('Email/email_subject')
+            env_name = os.environ.get(self.mcfg.get_item_by_key('Email/env_name').strip())  # get environment name
+            if not env_name:
+                env_name = 'Not Defined'
+            # populate email application id variable
+            email_app_id = self.mcfg.get_value('Email/application_id').replace('{env_name}', env_name)
+            # update subject and body
+            email_subject =  '{} - error occurred!'.format(email_app_id)
             email_body = 'Application: {}\nError message: {}\nError number: {}' \
-                .format(self.mcfg.get_value('Email/application_id'), error_desc, error_number)
+                .format(email_app_id, error_desc, error_number)
             try:
                 email.send_yagmail(
-                    emails_to=self.mcfg.get_value('Email/sent_to_emails'),
+                    emails_to=self.mcfg.get_value('Email/send_to_emails'),
                     subject=email_subject,
                     message=email_body
                     # ,attachment_path = email_attchms_study

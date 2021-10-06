@@ -136,25 +136,6 @@ def validate_available_envir_variables (mlog, m_cfg, env_cfg_groups = None, proc
             if mlog:
                 mlog.error(_str)
 
-            # # TODO: decide if sending email is needed
-            # # send notification email alerting about the error case
-            # email_subject = m_cfg.get_value('Email/email_subject')
-            # email_body = 'Application: {}\nError message: {}'\
-            #     .format(m_cfg.get_value('Email/application_id'), _str)
-            # try:
-            #     email.send_yagmail(
-            #         emails_to=m_cfg.get_value('Email/sent_to_emails'),
-            #         subject=email_subject,
-            #         message=email_body
-            #         # ,attachment_path = email_attchms_study
-            #     )
-            # except Exception as ex:
-            #     # report unexpected error during sending emails to a log file and continue
-            #     _str = 'Unexpected Error "{}" occurred during an attempt to send an email.\n{}'.\
-            #         format(ex, traceback.format_exc())
-            #     if mlog:
-            #         mlog.critical(_str)
-
             return False, _str
         else:
             if mlog:

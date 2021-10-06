@@ -3,7 +3,7 @@ from flask import request, jsonify, send_from_directory
 from datetime import datetime
 import inspect
 import os
-from utils import common2 as cm2
+from utils import common2 as cm2, global_const as gc, scheduler
 from utils import reports as rp
 from swagger.api_spec import spec
 
@@ -36,6 +36,21 @@ def index():
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'),
                                'favicon.ico', mimetype='image/vnd.microsoft.icon')
+
+@app.before_first_request
+def _run_on_start():
+    # get reference for the main config file
+    mcfg = cm2.get_main_config()
+    # get a config value defining if the custom logging should be used
+    custom_logging = mcfg.get_value('Logging/custom_logging')
+    if isinstance(custom_logging, bool):
+        gc.custom_logging = custom_logging
+    else:
+        # assign False as a default
+        gc.custom_logging = False
+
+    # start scheduler to delete old log files
+    scheduler.init_scheduler()
 
 @app.route('/test_error_handling')
 def test_error_handling():
