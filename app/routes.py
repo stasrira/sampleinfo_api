@@ -51,6 +51,8 @@ def _run_on_start():
 
     # start scheduler to delete old log files
     scheduler.init_scheduler()
+    # run first cleaning event on the start up
+    cm2.clean_log_directory()
 
 @app.route('/test_error_handling')
 def test_error_handling():
