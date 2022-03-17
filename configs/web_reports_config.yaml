@@ -1,0 +1,34 @@
+WebReports:
+    SampleInfo:
+        -
+            rep_name: Metadata Stats
+            rep_id: si_metadata_stats
+            sql: DB/sql_view_metadata_stats
+            filters:
+            helptip: This reports presents list (with the statistic info) of available metadata datasets
+        -
+            rep_name: SampleInfo Stats
+            rep_id: si_samlpeinfo_stats
+            sql: DB/sql_view_aliquot_data_stats
+            filters:
+            helptip: This reports presents list (with the statistic info) of available sample info (aliquot id based) datasets
+        -
+            rep_name: SampleInfo Dataset
+            rep_id: si_sampleinfo_dataset
+            sql: DB/sql_sp_sampleinfo_dataset
+            filters:
+                - { id: program_id, name: Program, type: dropdown }
+                - { id: center_id, name: Centers, type: multiselect }
+                - { id: dataset_type_id, name: Dataset Type, type: dropdown }
+                - { id: aliquot_ids, name: Aliquot Ids, type: textarea }
+            helptip: This report presents Sample Info (aliuquot id based) datasets
+        -
+            rep_name: Metadata Dataset
+            rep_id: si_metadata_dataset
+            sql: DB/sql_sp_metadata
+            filters:
+              - { id: program_id, name: Program, type: dropdown }
+              - { id: study_id, name: Studies, type: dropdown }
+              - { id: center_id, name: Centers, type: dropdown }
+              - { id: sample_ids, name: Sample Ids, type: textarea }
+            helptip: This report presents Metadata (biosample id based) datasets

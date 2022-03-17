@@ -41,7 +41,8 @@ def get_veiw_data (mcfg, mlog, view_name):
 #     for key, value in data.items():
 #         print('key = {}, value = {}'.format(key, value))
 
-# function retrieves dataset for the specified dataset name utilizing variable set of parameters passed through **parameters
+# function retrieves dataset for the specified dataset name
+# utilizing variable set of parameters passed through **parameters
 def get_dataset (mcfg, mlog, dataset_name, **param_values):
 
     result = None
