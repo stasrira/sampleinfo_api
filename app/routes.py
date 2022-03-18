@@ -1,5 +1,5 @@
 from app import app
-from flask import request, jsonify, send_from_directory
+from flask import request, jsonify, send_from_directory, render_template
 from datetime import datetime
 import inspect
 import os
@@ -377,6 +377,36 @@ def api_sampleinfo_dataset():
 def create_swagger_spec():
     return jsonify(spec.to_dict())
 
+@app.route('/get_report_filters', methods=('get', 'post'))
+def get_report_filters():
+    cfg_rep_loc = 'WebReports/SampleInfo'
+    webrep_cfg = cm2.get_webreports_config()
+
+    filters_out = {}
+
+    if request.method == 'GET':
+        req_report_id = request.values.get('report_id')
+        req_program_id = request.values.get('cur_program_id')
+    elif request.method == 'POST':
+        req_report_id = request.form['report_id']
+        req_program_id = request.form['cur_program_id']
+    else:
+        req_report_id = None
+
+    if req_report_id:
+        reports = webrep_cfg.get_value(cfg_rep_loc)
+        for rep in reports:
+            if rep['rep_id'] == req_report_id:
+                if 'filters' in rep:
+                    filters = rep['filters']
+                    for filter in filters:
+                        data = get_filter_values(filter)
+                        if 'result' in data and 'id' in data:
+                            filters_out[data['id']] = data
+    cur_program_id = int(req_program_id if req_program_id and req_program_id.isnumeric() else -1)
+    return render_template('report_filters.html', filters=filters_out, cur_program_id = cur_program_id)
+
+
 def generate_view(view_name):
     mcfg = cm2.get_main_config()
     mlog, mlog_handler = cm2.get_logger(cm2.get_client_ip())
@@ -465,3 +495,39 @@ def generate_sampleinfo_dataset (center_ids, dataset_type_id, aliquot_ids, aliqu
             mlog.info('Proceeding to report an error.')
             cm2.stop_logger(mlog, mlog_handler)
         return jsonify(message = 'Error retrieving data', status = 400)
+
+def get_filter_values(filter):
+    mcfg = cm2.get_main_config()
+    mlog, mlog_handler = cm2.get_logger()
+    result = None
+    columns = None
+    err = None
+    filter_data = {}
+    filter_id_str = 'unknown'
+    filter_name_str = 'unknown'
+    filter_data_type = 'text'
+
+    if filter and isinstance(filter, dict):
+        if 'id' in filter:
+            filter_id_str = filter['id']
+        if 'name' in filter:
+            filter_name_str = filter['name']
+        if 'type' in filter:
+            filter_data_type = filter['type']
+        if 'id' in filter and filter['id'] in ['program_id', 'center_id', 'study_id', 'dataset_type_id']:
+            result, columns, err = rp.get_filter_data(mcfg, mlog, filter['id'])
+
+        # if result is not populated yet and options are present in the config
+        if not result and 'options' in filter:
+            result = []
+            for opt in filter['options']:
+                result.append({'option_id': opt['id'], 'option_name': opt['name']})
+        #if result:
+        if not err or not err.exist():
+            filter_data['id'] = filter_id_str
+            filter_data['name'] = filter_name_str
+            filter_data['result'] = result
+            filter_data['type'] = filter_data_type
+            # filter_data['columns'] = columns
+
+    return filter_data

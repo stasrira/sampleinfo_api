@@ -20,6 +20,12 @@ def get_main_config():
         gc.main_cfg = ConfigData(gc.MAIN_CONFIG_FILE)
     return gc.main_cfg
 
+# get main config reference
+def get_webreports_config():
+    if not gc.webreps_cfg:
+        gc.webreps_cfg = ConfigData(gc.WEBREPORTS_CONFIG_FILE)
+    return gc.webreps_cfg
+
 # setup logger for the current web request
 def get_logger(process_log_id = None):
     if gc.custom_logging:

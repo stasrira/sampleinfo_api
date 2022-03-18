@@ -21,6 +21,12 @@ DB:
     sql_sp_metadata: exec usp_get_metadata
     sql_sp_sampleinfo_dataset: usp_get_aliquot_dataset
 
+    # sql calls to get contents for report filters
+    sql_get_programs: exec dbo.usp_get_programs_for_filters
+    sql_get_centers: exec dbo.usp_get_centers_for_filters
+    sql_get_studies: exec dbo.usp_get_studies_for_filters
+    sql_get_dataset_types: exec dbo.usp_get_aliquot_dataset_types_for_filters
+
     # sql parameters
     param_study_id: "@study_id = {study_id}"
     param_center_id: "@center_id = {center_id}"
