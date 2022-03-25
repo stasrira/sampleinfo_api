@@ -63,8 +63,9 @@ def get_dataset (mcfg, mlog, dataset_name, **param_values):
             parameters = ''
             for key, value in param_values.items():
                 if value:
-                    param = mcfg.get_item_by_key('DB/param_' + key).strip()
+                    param = mcfg.get_item_by_key('DB/param_' + key)
                     if param:
+                        param = param.strip()
                         parameters = parameters + ',' if len(parameters.strip()) > 0 else ' '
                         # add a parameter to the parameters string
                         parameters = parameters + param.replace('{'+key+'}', value)
@@ -109,7 +110,7 @@ def get_filter_data (mcfg, mlog, filter_id):
             if filter_id == 'program_id':
                 sql = mcfg.get_item_by_key('DB/sql_get_programs').strip()
                 # result, columns = mdb.run_sql_request(mlog, err, process_name, sql)
-            if filter_id == 'center_id':
+            if filter_id in ['center_id', 'center_ids']:
                 sql = mcfg.get_item_by_key('DB/sql_get_centers').strip()
                 # result, columns = mdb.run_sql_request(mlog, err, process_name, sql)
             if filter_id == 'study_id':

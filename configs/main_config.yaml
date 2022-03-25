@@ -19,6 +19,7 @@ DB:
 
     # sql call for metadata dataset
     sql_sp_metadata: exec usp_get_metadata
+    # sql call for sample info (manifest id based) dataset
     sql_sp_sampleinfo_dataset: usp_get_aliquot_dataset
 
     # sql calls to get contents for report filters

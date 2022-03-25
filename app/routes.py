@@ -377,6 +377,21 @@ def api_sampleinfo_dataset():
 def create_swagger_spec():
     return jsonify(spec.to_dict())
 
+@app.route('/view_reports')
+def view_reports():
+    # mcfg = cm2.get_main_config()
+    webrep_cfg = cm2.get_webreports_config()
+    cfg_rep_loc = 'WebReports/SampleInfo'
+    reports = webrep_cfg.get_value(cfg_rep_loc)
+    if reports:
+        return render_template("view_report.html", reports = reports)
+    else:
+        mlog, mlog_handler = cm2.get_logger()
+        mlog.info('No list of available reports found in the config, check value of the "{}" parameter.'.format(cfg_rep_loc))
+        cm2.stop_logger(mlog, mlog_handler)
+        return render_template('error.html', report_name="View Reports", error = "No list of available reports found.")
+
+
 @app.route('/get_report_filters', methods=('get', 'post'))
 def get_report_filters():
     cfg_rep_loc = 'WebReports/SampleInfo'
@@ -384,14 +399,8 @@ def get_report_filters():
 
     filters_out = {}
 
-    if request.method == 'GET':
-        req_report_id = request.values.get('report_id')
-        req_program_id = request.values.get('cur_program_id')
-    elif request.method == 'POST':
-        req_report_id = request.form['report_id']
-        req_program_id = request.form['cur_program_id']
-    else:
-        req_report_id = None
+    req_report_id = get_web_request_value(request, 'report_id')
+    req_program_id = get_web_request_value(request, 'cur_program_id')
 
     if req_report_id:
         reports = webrep_cfg.get_value(cfg_rep_loc)
@@ -399,13 +408,82 @@ def get_report_filters():
             if rep['rep_id'] == req_report_id:
                 if 'filters' in rep:
                     filters = rep['filters']
-                    for filter in filters:
-                        data = get_filter_values(filter)
-                        if 'result' in data and 'id' in data:
-                            filters_out[data['id']] = data
+                    if filters:
+                        for filter in filters:
+                            data = get_filter_values(filter)
+                            if 'result' in data and 'id' in data:
+                                filters_out[data['id']] = data
     cur_program_id = int(req_program_id if req_program_id and req_program_id.isnumeric() else -1)
     return render_template('report_filters.html', filters=filters_out, cur_program_id = cur_program_id)
 
+@app.route('/get_report_data', methods=('get', 'post'))
+def get_report_data():
+    cfg_rep_loc = 'WebReports/SampleInfo'
+    mcfg = cm2.get_main_config()
+    webrep_cfg = cm2.get_webreports_config()
+
+    mlog, mlog_handler = cm2.get_logger()
+    process_name = inspect.stack()[0][3]
+
+    sql = ''
+    report_name = ''
+    report_id = ''
+
+    # get id of the requested report
+    req_report_id = get_web_request_value(request, 'report_id')
+
+    if req_report_id:
+        reports = webrep_cfg.get_value(cfg_rep_loc)  # get list of reports from the config file
+        for rep in reports:
+            if rep['rep_id'] == request.form['report_id']:
+                parameters = {}
+                report_name = rep['rep_name']  # get report name from the config
+                report_id = rep['rep_id']  # get report id into a separate variable  TODO: check if this assignment can be removed
+                # get sql statement
+                if 'sql' in rep:
+                    # get dataset name (corresponds to an entry in the main config file under DB/ section) for the SQL command to be used
+                    dataset_name = rep['sql']
+
+                # collect expected parameters and update sql statement
+                if 'filters' in rep:
+                    filters = rep['filters']
+                    if filters:
+                        for flt in filters:
+                            if 'id' in flt:
+                                if flt['id'] in request.form:
+                                    parameters [flt['id']] = request.form[flt['id']]
+                # break
+
+                # get the dataset from the database
+                result, columns, err = rp.get_dataset(mcfg, mlog, dataset_name, **parameters)
+
+                # check for errors and create an output
+                if err and not err.exist():
+                    if mlog:
+                        mlog.info('Received response from DB for requested report id "{}", '
+                                  'proceeding to render the web response.'.format(report_id))
+                        cm2.stop_logger(mlog, mlog_handler)
+                    return render_template('report_data.html', report_name=report_name, columns=columns, data=result)
+                else:
+                    str = 'Some errors were generated during retrieving data for "{}" report (report_id = {}).'\
+                        .format(report_name, report_id)
+                    if mlog:
+                        mlog.info('Proceeding to report the following error to the web page: '.format(str))
+                        cm2.stop_logger(mlog, mlog_handler)
+                    return render_template('error.html', report_name=report_name, error=str)
+
+                # get out of the loop if the report was found
+                break
+
+def get_web_request_value (request, field_name):
+    # get requested value based on the method of the request
+    if request.method == 'GET':
+        value_out = request.values.get(field_name)
+    elif request.method == 'POST':
+        value_out = request.form[field_name]
+    else:
+        value_out = None
+    return value_out
 
 def generate_view(view_name):
     mcfg = cm2.get_main_config()
@@ -506,6 +584,8 @@ def get_filter_values(filter):
     filter_id_str = 'unknown'
     filter_name_str = 'unknown'
     filter_data_type = 'text'
+    filter_dropdown_default_value = None
+    filter_add_blank_option = None
 
     if filter and isinstance(filter, dict):
         if 'id' in filter:
@@ -514,7 +594,11 @@ def get_filter_values(filter):
             filter_name_str = filter['name']
         if 'type' in filter:
             filter_data_type = filter['type']
-        if 'id' in filter and filter['id'] in ['program_id', 'center_id', 'study_id', 'dataset_type_id']:
+        if 'dropdown_default_value' in filter:
+            filter_dropdown_default_value = filter['dropdown_default_value']
+        if 'add_blank_option' in filter:
+            filter_add_blank_option = filter['add_blank_option']
+        if 'id' in filter and filter['id'] in ['program_id', 'center_id', 'center_ids', 'study_id', 'dataset_type_id']:
             result, columns, err = rp.get_filter_data(mcfg, mlog, filter['id'])
 
         # if result is not populated yet and options are present in the config
@@ -528,6 +612,10 @@ def get_filter_values(filter):
             filter_data['name'] = filter_name_str
             filter_data['result'] = result
             filter_data['type'] = filter_data_type
+            if filter_dropdown_default_value:
+                filter_data['dropdown_default_value'] = filter_dropdown_default_value
+            if filter_add_blank_option:
+                filter_data['add_blank_option'] = filter_add_blank_option
             # filter_data['columns'] = columns
 
     return filter_data
