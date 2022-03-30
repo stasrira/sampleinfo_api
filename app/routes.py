@@ -459,13 +459,20 @@ def get_report_data():
 
                 # check for errors and create an output
                 if err and not err.exist():
-                    if mlog:
-                        mlog.info('Received response from DB for requested report id "{}", '
-                                  'proceeding to render the web response.'.format(report_id))
-                        cm2.stop_logger(mlog, mlog_handler)
-                    return render_template('report_data.html', report_name=report_name, columns=columns, data=result)
+                    if result:
+                        # some dataset was returned from the DB
+                        if mlog:
+                            mlog.info('Received response from DB for requested report id "{}", '
+                                      'proceeding to render the web response.'.format(report_id))
+                            cm2.stop_logger(mlog, mlog_handler)
+                        return render_template('report_data.html', report_name=report_name, columns=columns, data=result)
+                    else:
+                        # No dataset was returned from the DB
+                        str = 'No data was returned from the database for the requested parameters.'
+                        return render_template('error.html', report_name=report_name, error=str, text_color = 'black')
                 else:
-                    str = 'Some errors were generated during retrieving data for "{}" report (report_id = {}).'\
+                    str = 'Some errors were generated during retrieving data for "{}" report (report_id = {}). ' \
+                          'An email notification has been sent to the administrator. '\
                         .format(report_name, report_id)
                     if mlog:
                         mlog.info('Proceeding to report the following error to the web page: '.format(str))

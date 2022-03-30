@@ -18,3 +18,21 @@
     transform: rotate(360deg);
   }
 }
+
+.dataTable td {
+  overflow: hidden; /* this is what fixes the expansion */
+  text-overflow: ellipsis; /* not supported in all browsers, but I accepted the tradeoff */
+  white-space: nowrap;
+  font-size: small;
+  padding: 0.1rem 0.1rem;
+}
+
+.dataTable th {
+  font-size: small;
+  padding: 0.1rem 0.1rem;
+  /*width: 100%;*/
+}
+
+/*.dataTable input {*/
+/*  width: 100%;*/
+/*}*/

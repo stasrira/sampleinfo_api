@@ -15,6 +15,9 @@ $(document).ready(function() {
             $('#select_report :selected').attr('helptip').split("|")[1]
         );
 
+        //hide currently shown report
+        $('#div_report').hide();
+
         $.post("/get_report_filters",
         {
             report_id: this.value,
@@ -50,64 +53,8 @@ $(document).ready(function() {
             // on_filter_change(); //register filter change event
             on_run_report(); //register Run Report button click
 
-            init_multiselect ($('#center_ids'));
+            init_multiselect ($('#center_ids'), 'Select One or More...');
             // init_multiselect ($('#center_id'));
-
-            // if ($('#center_ids[multiple="multiple"]').length > 0) {
-            //     $('#center_ids').multiselect({
-            //         buttonWidth: '100%',
-            //         maxHeight: 250,
-            //         includeResetOption: true,
-            //         includeResetDivider: true,
-            //         numberDisplayed: 2,
-            //         resetText: "Clear all selected options",
-            //         // enableFiltering: true,
-            //         // enableCaseInsensitiveFiltering: true,
-            //         // includeFilterClearBtn: true,
-            //         // includeSelectAllOption: true,
-            //         nonSelectedText: 'Keep blank or Choose... ',
-            //         selectedClass: 'active multiselect-selected'
-            //         // onDeselectAll: function() {
-            //         //     alert('onDeselectAll triggered!');
-            //         // },
-            //         , onChange: function (element, checked) {
-            //             // console.log($(".multiselect-container > button.disabled"));
-            //             // console.log();
-            //             $(".multiselect-container > button.disabled").hide();
-            //         }
-            //     });
-            //
-            //     //adjust height of the multiselect button after it was rendered
-            //     $("#center_ids + div").css("height","100%");
-            // }
-
-            // if ($('#center_id[multiple="multiple"]').length > 0) {
-            //     $('#center_id').multiselect({
-            //         buttonWidth: '100%',
-            //         maxHeight: 250,
-            //         includeResetOption: true,
-            //         includeResetDivider: true,
-            //         numberDisplayed: 2,
-            //         resetText: "Clear all selected options",
-            //         // enableFiltering: true,
-            //         // enableCaseInsensitiveFiltering: true,
-            //         // includeFilterClearBtn: true,
-            //         // includeSelectAllOption: true,
-            //         nonSelectedText: 'Keep blank or Choose... ',
-            //         selectedClass: 'active multiselect-selected'
-            //         // onDeselectAll: function() {
-            //         //     alert('onDeselectAll triggered!');
-            //         // },
-            //         , onChange: function (element, checked) {
-            //             // console.log($(".multiselect-container > button.disabled"));
-            //             // console.log();
-            //             $(".multiselect-container > button.disabled").hide();
-            //         }
-            //     });
-            //
-            //     //adjust height of the multiselect button after it was rendered
-            //     $("#center_id + div").css("height","100%");
-            // }
 
             // //run assignment of the tooltip for pivot_by dropdown on the initial load of the filter
             // assign_selected_option_to_tooltip ($('#pivot_by'), $('#pivot_by :selected'));
@@ -175,6 +122,14 @@ $(document).ready(function() {
             //     }
             // }
 
+
+            //identify if any control filters were assigned to this reports
+            run_on_load = $('#select_report :selected').attr('run_on_load');
+            if (run_on_load !== undefined) {
+                //if run_on_load attribut is present, run report immediately after loading filters
+                $("#run_report").click();
+            }
+
           }
         });
     });
@@ -185,7 +140,7 @@ $(document).ready(function() {
     //     });
     // }
 
-    var init_multiselect = function (select_ctr){
+    var init_multiselect = function (select_ctr, non_selected_text){
         if (select_ctr.length > 0) {
             if (select_ctr.attr('multiple') == 'multiple') {
                 select_ctr.multiselect({
@@ -199,7 +154,7 @@ $(document).ready(function() {
                     // enableCaseInsensitiveFiltering: true,
                     // includeFilterClearBtn: true,
                     // includeSelectAllOption: true,
-                    nonSelectedText: 'Keep blank or Choose... ',
+                    nonSelectedText: non_selected_text, //'Keep blank or Choose... ',
                     selectedClass: 'active multiselect-selected'
                     // onDeselectAll: function() {
                     //     alert('onDeselectAll triggered!');
@@ -270,9 +225,9 @@ $(document).ready(function() {
                     //study_id: $('#study_id').val() ? $('#study_id').val() : "",
                     study_id: sel_studies,
                     aliquot_ids: $('#aliquot_ids').val() ? $('#aliquot_ids').val() : "",
-                    date_from: $('#date_from').val() ? $('#date_from').val() : "",
-                    date_to: $('#date_to').val() ? $('#date_to').val() : "",
-                    pivot_by: $('#pivot_by').val() ? $('#pivot_by').val() : "",
+                    // date_from: $('#date_from').val() ? $('#date_from').val() : "",
+                    // date_to: $('#date_to').val() ? $('#date_to').val() : "",
+                    // pivot_by: $('#pivot_by').val() ? $('#pivot_by').val() : "",
                 },
                 function (data, status) {
                     $('#loader').hide();
@@ -302,11 +257,20 @@ $(document).ready(function() {
             //     sel_studies = sel_studies + (',' + this.value ? sel_studies : this.value)
             // })
 
-            if ($('#center_ids option:selected')) {
-                for (i = 0; i < $('#center_ids option:selected').length; i++) {
-                    sel_centers_arr[i] = $('#center_ids option:selected')[i].value;
+            if ($('#center_ids')) {
+                if ($('#center_ids option:selected').length > 0) {
+                    //collect one or more selected centers from the multi-select control
+                    for (i = 0; i < $('#center_ids option:selected').length; i++) {
+                        sel_centers_arr[i] = $('#center_ids option:selected')[i].value;
+                    }
+                    sel_centers = sel_centers_arr.join();
+                } else {
+                    //if no selected centers available, collect all not disabled centers and pass them as the selected ones
+                    for (i = 0; i < $('#center_ids option[disabled!="disabled"]').length; i++) {
+                        sel_centers_arr[i] = $('#center_ids option[disabled!="disabled"]')[i].value;
+                    }
+                    sel_centers = sel_centers_arr.join();
                 }
-                sel_centers = sel_centers_arr.join();
             }
             // console.log('Selected studies-> ' + sel_studies);  //TODO: remove this line after testing
 
@@ -315,8 +279,8 @@ $(document).ready(function() {
                     report_id: $('#select_report').val() ? $('#select_report').val() : "",
                     program_id: $('#program_id').val() ? $('#program_id').val() : "",
                     //study_id: $('#study_id').val() ? $('#study_id').val() : "",
-                    study_id: $('#study_id option:selected').value,  //sel_study,
-                    center_id: $('#center_id option:selected').value,
+                    study_id: $('#study_id option:selected').val(),  //sel_study,
+                    center_id: $('#center_id option:selected').val(),
                     center_ids: sel_centers,
                     aliquot_ids: $('#aliquot_ids').val() ? $('#aliquot_ids').val() : "",
                     sample_ids: $('#sample_ids').val() ? $('#sample_ids').val() : "",
@@ -341,7 +305,7 @@ $(document).ready(function() {
         $('#program_id').on('change', function () {
             run_select_control_validation($("#study_id"), this.value);
             run_select_control_validation($("#center_id"), this.value);
-            run_select_control_validation($("#center_ids"), $('#program_id').val());
+            run_select_control_validation($("#center_ids"), this.value);
         });
     }
 
@@ -351,7 +315,7 @@ $(document).ready(function() {
                 validate_multiselect_control(select_ctr, cur_parent_id)
             }
             else {
-                validate_select_control(select_ctr, cur_parent_id, true)
+                validate_select_control(select_ctr, cur_parent_id, true, true)
             }
         }
     }
@@ -365,7 +329,7 @@ $(document).ready(function() {
         select_ctr.siblings().find(".multiselect-container").children(".multiselect-container > button.disabled").hide();
     }
 
-    var validate_select_control = function(select_ctr, cur_parent_id, hide_disabled_options){
+    var validate_select_control = function(select_ctr, cur_parent_id, hide_disabled_options, select_first_option){
         if (hide_disabled_options !== undefined && hide_disabled_options){
             select_ctr.find('option[disabled="disabled"]').show();
         }
@@ -376,7 +340,12 @@ $(document).ready(function() {
         if (hide_disabled_options !== undefined && hide_disabled_options){
             select_ctr.find('option[disabled="disabled"]').hide();
         }
+
         select_ctr.val(''); //clear the current value
+
+        if (select_first_option !== undefined && select_first_option){
+           $(select_ctr.find('option[disabled!="disabled"]')[0]).attr("selected", "selected");
+        }
     }
 
     var data_table = function() {
@@ -389,7 +358,9 @@ $(document).ready(function() {
                 'copyHtml5', 'csvHtml5', 'colvis'
             ],
             //dom: "lfBtip",
-            "pageLength": 10,
+            pageLength: 10,
+            // fixedHeader: true,
+            keys: true,
             initComplete: function () {
                 // Apply the search
                 var table = this; //reference to the DataTable

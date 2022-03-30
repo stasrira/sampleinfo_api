@@ -6,11 +6,14 @@
 {% endblock %}
 
 {% block content %}
-    <div style="color: #ff0000; font-size: medium; margin-top: 20px; margin-left: 100px">
+    {% if text_color == None %}
+        {% set text_color = '#ff0000' %}
+    {% endif %}
+    <div style="color: {{text_color}}; font-size: medium; margin-top: 20px; margin-left: 100px">
     {%  if error|length > 0 %}
         {{ error }}
     {% else %}
-        Unexpected error has occurred, sorry for the inconvenience.
+        Unexpected error has occurred, sorry for the inconvenience. An email notification has been sent to the administrator.
     {% endif %}
     </div>
 {% endblock %}

@@ -3,14 +3,14 @@
         <thead>
             <tr>
                 {% for col in columns %}
-                    <th style="text-align: center; vertical-align: center">
-                        <div style = 'height: 20px;margin-top: 6px; margin-bottom: 6px'>
-                            {% if not 'date' in col[0] %}
-                                <input data-column-name="{{ col[0] }}" data-column-id="{{ loop.index0 }}"
-                                       placeholder="Search {{ col[0] }}"
-                                       style="width: 100px; min-width: 40px"
-                                >
-                            {% endif %}
+                    <th style="text-align: center; vertical-align: center;padding-right: 0px;">
+                        <div style = 'height: 20px;margin-top: 6px; margin-bottom: 6px;padding: 0 10px;'>
+{#                            {% if not 'date' in col[0] %}#}
+                            <input data-column-name="{{ col[0] }}" data-column-id="{{ loop.index0 }}"
+                                   placeholder="Search {{ col[0] }}"
+                                   style="width: 100%; min-width: 40px;"
+                            > <!--max-width: 400px -->
+{#                            {% endif %}#}
                         </div>
                     </th>
                 {% endfor %}

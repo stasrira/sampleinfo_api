@@ -5,12 +5,14 @@ WebReports:
             rep_id: si_metadata_stats
             sql: sql_view_metadata_stats
             filters:
+            run_on_load: True
             helptip: This reports presents list (with the statistic info) of available metadata datasets
         -
             rep_name: SampleInfo Stats
             rep_id: si_samlpeinfo_stats
             sql: sql_view_aliquot_data_stats
             filters:
+            run_on_load: False
             helptip: This reports presents list (with the statistic info) of available sample info (aliquot id based) datasets
         -
             rep_name: SampleInfo Dataset
@@ -29,7 +31,7 @@ WebReports:
             sql: sql_sp_metadata
             filters:
               - { id: program_id, name: Program, type: dropdown }
-              - { id: study_id, name: Studies, type: dropdown }
+              - { id: study_id, name: Study, type: dropdown }
 #              - { id: center_id, name: Centers, type: dropdown }
               - { id: sample_ids, name: Sample Ids, type: textarea }
             filter_label_width: 100px
@@ -41,7 +43,7 @@ WebReports:
             filters:
               - { id: program_id, name: Program, type: dropdown }
 #              - { id: study_id, name: Studies, type: dropdown }
-              - { id: center_id, name: Centers, type: dropdown }
+              - { id: center_id, name: Center, type: dropdown }
               - { id: sample_ids, name: Sample Ids, type: textarea }
             filter_label_width: 100px
             helptip: This report presents Metadata (biosample id based) datasets using metadata study ids as identifiers
