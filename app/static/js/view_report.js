@@ -362,7 +362,7 @@ $(document).ready(function() {
             // fixedHeader:    true, // preserves header row
             keys:           true, // adds excel like filling allowing selecting current cell
             // following group of variables defines scrolling functionality
-            scrollY:        '77vh', //calc_datatable_height(), //600
+            scrollY:        calc_datatable_height(), //600 //'70vh', //
             deferRender:    true,
             scroller:       true,
             // scroller: {
@@ -386,7 +386,7 @@ $(document).ready(function() {
 
                 $(window).on('resize', function(){
                     //adjust datatable scroller body on windows resize
-                    // $('.dataTables_scrollBody').height(calc_datatable_height()) //set scroller body height to match the size of the window
+                    $('.dataTables_scrollBody').height(calc_datatable_height()) //set scroller body height to match the size of the window
                     adjust_scrollbody_height_to_match_datatable();
                 });
 
@@ -398,7 +398,7 @@ $(document).ready(function() {
     //calculates datatable height for setting up scroller's height
     var calc_datatable_height = function(offset_val) {
         offset_val = offset_val || 280  // set default value if value was not provided
-        if (jQuery(window).height() > offset_val){
+        if (jQuery(window).height() <= offset_val){
             //if windows height is > offset_val, reset it to 0
             offset_val = 0;
         }
