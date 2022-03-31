@@ -53,7 +53,7 @@ $(document).ready(function() {
             // on_filter_change(); //register filter change event
             on_run_report(); //register Run Report button click
 
-            init_multiselect ($('#center_ids'), 'Select One or More...');
+            init_multiselect ($('#center_ids'), 'Keep blank for All or Select...');
             // init_multiselect ($('#center_id'));
 
             // //run assignment of the tooltip for pivot_by dropdown on the initial load of the filter
@@ -358,12 +358,22 @@ $(document).ready(function() {
                 'copyHtml5', 'csvHtml5', 'colvis'
             ],
             //dom: "lfBtip",
-            pageLength: 10,
-            // fixedHeader: true,
-            keys: true,
+            // pageLength:     25, // default page lenght
+            // fixedHeader:    true, // preserves header row
+            keys:           true, // adds excel like filling allowing selecting current cell
+            // following group of variables defines scrolling functionality
+            scrollY:        '77vh', //calc_datatable_height(), //600
+            deferRender:    true,
+            scroller:       true,
+            // scroller: {
+            //     loadingIndicator: true
+            // },
             initComplete: function () {
-                // Apply the search
                 var table = this; //reference to the DataTable
+
+                // $('.dataTables_scrollBody').height(calc_datatable_height()) //set scroller body height to match the size of the window
+                adjust_scrollbody_height_to_match_datatable(); //adjust scroller's body height if needed
+
                 //setup events handler for all controls with "data-column-name" attribute name
                 $("[data-column-name]").on( 'keyup change clear', function() {
                     //console.log($(this).attr("data-column-name") + " : " + $(this).val());
@@ -374,9 +384,38 @@ $(document).ready(function() {
                         .draw();
                 });
 
+                $(window).on('resize', function(){
+                    //adjust datatable scroller body on windows resize
+                    // $('.dataTables_scrollBody').height(calc_datatable_height()) //set scroller body height to match the size of the window
+                    adjust_scrollbody_height_to_match_datatable();
+                });
+
             }
         });
     }
+
+    //not in use currently
+    //calculates datatable height for setting up scroller's height
+    var calc_datatable_height = function(offset_val) {
+        offset_val = offset_val || 280  // set default value if value was not provided
+        if (jQuery(window).height() > offset_val){
+            //if windows height is > offset_val, reset it to 0
+            offset_val = 0;
+        }
+        return Math.round(jQuery(window).height() - offset_val);
+
+    };
+
+    // checks if the datatable height is less then the scroller's body height and adjusts scroller to match the table height
+    var adjust_scrollbody_height_to_match_datatable = function() {
+        //get heights of the datatable and scroller
+        scrollbody_height = $('.dataTables_scrollBody').height();
+        datatable_height = Math.ceil($("table#report").height());
+        //adjust scroller body height if it is > datatable height
+        if (datatable_height < scrollbody_height){
+          $('.dataTables_scrollBody').height(datatable_height);
+        }
+    };
 
     //assign current value of the dropdown to the tool tip
     var assign_selected_option_to_tooltip = function(control, selected_option){

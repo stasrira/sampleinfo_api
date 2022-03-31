@@ -12,7 +12,7 @@ WebReports:
             rep_id: si_samlpeinfo_stats
             sql: sql_view_aliquot_data_stats
             filters:
-            run_on_load: False
+            run_on_load: True
             helptip: This reports presents list (with the statistic info) of available sample info (aliquot id based) datasets
         -
             rep_name: SampleInfo Dataset
