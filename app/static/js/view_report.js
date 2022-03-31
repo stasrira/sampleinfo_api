@@ -363,6 +363,13 @@ $(document).ready(function() {
             keys:           true, // adds excel like filling allowing selecting current cell
             // following group of variables defines scrolling functionality
             scrollY:        calc_datatable_height(), //600 //'70vh', //
+            // scrollx:        true,
+            scrollResize:   true,
+            // scrollCollapse: true,
+            // paging: false,
+            // lengthChange: false,
+            // pageLength: 50,
+
             deferRender:    true,
             scroller:       true,
             // scroller: {
@@ -372,7 +379,8 @@ $(document).ready(function() {
                 var table = this; //reference to the DataTable
 
                 // $('.dataTables_scrollBody').height(calc_datatable_height()) //set scroller body height to match the size of the window
-                adjust_scrollbody_height_to_match_datatable(); //adjust scroller's body height if needed
+                adjust_scrollbody_height_to_match_datatable(); //adjust scroller body height to match datatable height (needed for small datasets)
+                adjust_scrollbody_width_to_fit_window(); //adjust scroller body width to match the width of the window
 
                 //setup events handler for all controls with "data-column-name" attribute name
                 $("[data-column-name]").on( 'keyup change clear', function() {
@@ -386,8 +394,9 @@ $(document).ready(function() {
 
                 $(window).on('resize', function(){
                     //adjust datatable scroller body on windows resize
-                    $('.dataTables_scrollBody').height(calc_datatable_height()) //set scroller body height to match the size of the window
-                    adjust_scrollbody_height_to_match_datatable();
+                    $('.dataTables_scrollBody').height(calc_datatable_height()) //set scroller body height to match the height of the window
+                    adjust_scrollbody_height_to_match_datatable(); //adjust scroller body height to match datatable height (needed for small datasets)
+                    adjust_scrollbody_width_to_fit_window(); //adjust scroller body width to match the width of the window
                 });
 
             }
@@ -403,7 +412,6 @@ $(document).ready(function() {
             offset_val = 0;
         }
         return Math.round(jQuery(window).height() - offset_val);
-
     };
 
     // checks if the datatable height is less then the scroller's body height and adjusts scroller to match the table height
@@ -416,6 +424,19 @@ $(document).ready(function() {
           $('.dataTables_scrollBody').height(datatable_height);
         }
     };
+
+    var adjust_scrollbody_width_to_fit_window = function(offset_val) {
+        offset_val = offset_val || 75  // set default value if value was not provided
+        //get width of the the main components
+        //$('.dataTables_scroll').width(jQuery(window).width() - $('#sidebarMenu').width() - 100)
+        window_width = jQuery(window).width();
+        sidebar_width = $('#sidebarMenu').width();
+        //adjust scroller body height if it is > datatable height
+        if (window_width > (sidebar_width + offset_val)){
+          $('.dataTables_scroll').width(window_width - sidebar_width - offset_val);
+        }
+    };
+
 
     //assign current value of the dropdown to the tool tip
     var assign_selected_option_to_tooltip = function(control, selected_option){
