@@ -370,34 +370,34 @@ $(document).ready(function() {
             // lengthChange: false,
             // pageLength: 50,
 
-            deferRender:    true,
-            scroller:       true,
-            // scroller: {
-            //     loadingIndicator: true
-            // },
-            initComplete: function () {
-                var table = this; //reference to the DataTable
+                deferRender: true,
+                // scroller:       true,
+                // scroller: {
+                //     loadingIndicator: true
+                // },
+                initComplete: function () {
+                    var table = this; //reference to the DataTable
 
-                // $('.dataTables_scrollBody').height(calc_datatable_height()) //set scroller body height to match the size of the window
-                adjust_scrollbody_height_to_match_datatable(); //adjust scroller body height to match datatable height (needed for small datasets)
-                adjust_scrollbody_width_to_fit_window(); //adjust scroller body width to match the width of the window
+                    // $('.dataTables_scrollBody').height(calc_datatable_height()) //set scroller body height to match the size of the window
+                    //adjust_scrollbody_height_to_match_datatable(); //adjust scroller body height to match datatable height (needed for small datasets)
+                    // adjust_scrollbody_width_to_fit_window(); //adjust scroller body width to match the width of the window
 
-                //setup events handler for all controls with "data-column-name" attribute name
-                $("[data-column-name]").on( 'keyup change clear', function() {
-                    //console.log($(this).attr("data-column-name") + " : " + $(this).val());
-                    //console.log(table.api().columns());
-                    table.api()
-                        .columns($(this).attr("data-column-id"))
-                        .search( $(this).val())
-                        .draw();
-                });
+                    //setup events handler for all controls with "data-column-name" attribute name
+                    $("[data-column-name]").on('keyup change clear', function () {
+                        //console.log($(this).attr("data-column-name") + " : " + $(this).val());
+                        //console.log(table.api().columns());
+                        table.api()
+                            .columns($(this).attr("data-column-id"))
+                            .search($(this).val())
+                            .draw();
+                    });
 
-                $(window).on('resize', function(){
-                    //adjust datatable scroller body on windows resize
-                    $('.dataTables_scrollBody').height(calc_datatable_height()) //set scroller body height to match the height of the window
-                    adjust_scrollbody_height_to_match_datatable(); //adjust scroller body height to match datatable height (needed for small datasets)
-                    adjust_scrollbody_width_to_fit_window(); //adjust scroller body width to match the width of the window
-                });
+                    $(window).on('resize', function () {
+                        //adjust datatable scroller body on windows resize
+                        $('.dataTables_scrollBody').height(calc_datatable_height()) //set scroller body height to match the height of the window
+                        //adjust_scrollbody_height_to_match_datatable(); //adjust scroller body height to match datatable height (needed for small datasets)
+                        // adjust_scrollbody_width_to_fit_window(); //adjust scroller body width to match the width of the window
+                    });
 
             }
         });

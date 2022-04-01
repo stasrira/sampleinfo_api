@@ -36,3 +36,9 @@
 /*.dataTable input {*/
 /*  width: 100%;*/
 /*}*/
+
+/*creates limit of width used by data table, but makes body of the table moving without headers*/
+/*div.dataTables_wrapper {*/
+/*        width: 1200px;*/
+/*        margin: 0 auto;*/
+/*    }*/
