@@ -74,3 +74,6 @@ Validate:
             - ST_DB_USER_PWD
             - ST_SMTP_SERVER
             - ST_ENV_NAME
+
+Report:
+    max_web_rows_to_show: 2000

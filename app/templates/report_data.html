@@ -1,4 +1,10 @@
-
+    {%  if max_rows_msg|length > 0 %}
+        <div id="max_rows_msg">{{ max_rows_msg }}</div>
+    {% endif %}
+    {%  if column_report_filters|length > 0 %}
+        <div id="column_report_filters" style="display: none">{{ column_report_filters }}</div>
+    {% endif %}
+{#    <div id="warning_not_full_dataset">Warning text goes here</div>#}
     <table id="report" class="table table-hover table-bordered display" style="width:100%">
         <thead>
             <tr>

@@ -52,6 +52,7 @@ $(document).ready(function() {
             on_program_change(); //register program id control event
             // on_filter_change(); //register filter change event
             on_run_report(); //register Run Report button click
+            on_reload_report_with_filters(); //reigster Reload Report button
 
             init_multiselect ($('#center_ids'), 'Keep blank for All or Select...');
             // init_multiselect ($('#center_id'));
@@ -241,9 +242,7 @@ $(document).ready(function() {
         });
     }
 
-    //declare onChange event for any filter change
-    var on_run_report = function() {
-        $("#run_report").click(function () {
+    on_run_report_click = function (dummy, column_filters = false) {
             //$("#program_id").on('change', function () {
             $('#div_report').hide();
             $('#loader').show();
@@ -274,6 +273,13 @@ $(document).ready(function() {
             }
             // console.log('Selected studies-> ' + sel_studies);  //TODO: remove this line after testing
 
+            if (column_filters && $("[data-column-name]").length > 0) {
+                // console.log(collect_report_filters());
+                column_report_filters = collect_report_filters();
+            } else {
+                column_report_filters = "";
+            }
+
             $.post("/get_report_data",
                 {
                     report_id: $('#select_report').val() ? $('#select_report').val() : "",
@@ -285,6 +291,7 @@ $(document).ready(function() {
                     aliquot_ids: $('#aliquot_ids').val() ? $('#aliquot_ids').val() : "",
                     sample_ids: $('#sample_ids').val() ? $('#sample_ids').val() : "",
                     dataset_type_id: $('#dataset_type_id').val() ? $('#dataset_type_id').val() : "",
+                    column_report_filters: column_report_filters,
                     // date_from: $('#date_from').val() ? $('#date_from').val() : "",
                     // date_to: $('#date_to').val() ? $('#date_to').val() : "",
                 },
@@ -296,8 +303,76 @@ $(document).ready(function() {
                     mytable.buttons()
                         .container()
                         .appendTo( '#report_wrapper .col-md-6:eq(0)' );
+                    // assign_report_filters();
                 });
-        });
+        }
+
+    //declare onClick event for Run Report button
+    var on_run_report = function() {
+        $("#run_report").click(on_run_report_click);
+    }
+
+    //declare onClick event for Reload Report With Column Filters
+    var on_reload_report_with_filters = function (){
+        $("#reload_report_with_filters").click(function () {
+            on_run_report_click('', true);
+        })
+    }
+
+    // collect report column filters
+    var collect_report_filters = function(){
+        // removes divisions containing copies of the column's filter input controls that are managed by DataTable
+        // all controls being removed are not used after the Datatable was rendered, however they have duplicated
+        // attribute names to the actual column's search controls that complicates working with the latest
+        $(".dataTables_sizing").remove();
+
+        filters=[];
+        for (i = 0; i < $("[data-column-name]").length; i++) {
+            flt_dict={};
+            flt_name = $("[data-column-name]")[i].getAttribute('data-column-name');
+            flt_value = $("[data-column-name]")[i].value;
+            flt_dict[flt_name] = flt_value;
+            filters.push(flt_dict);
+        }
+        return JSON.stringify(filters);
+    }
+
+    // assign report column filters on load; it is used when report filters were already applied to the dataset
+    // on server side and now just need to be shown on UI
+    var assign_report_filters = function(){
+        console.log('inside --> assign_report_filters')
+        filters_str = $("#column_report_filters").text(); // get list of filters from a control
+        if (Boolean(filters_str)) { // if list is not empty proceed here
+            // count = 0;
+            // // wait until data-column-name controls are loaded
+            // while ($("[data-column-name]").length = 0){
+            //     count++;
+            //     if (count > 1000) {
+            //         break;
+            //     }
+            // }
+            // console.log('count = ' + count);
+            console.log('$("[data-column-name]").length = ' + $("[data-column-name]").length);
+
+            filters = JSON.parse(filters_str);
+            console.log(filters)
+            console.log(Array.isArray(filters))
+            if (Array.isArray(filters)) {
+                // // remove divisions containing copies of the column's filter input controls that are managed by DataTable
+                // // all controls being removed are not used after the Datatable was rendered
+                // $(".dataTables_sizing").remove();
+
+                for (i = 0; i < filters.length; i++) {
+                    for ([flt_name, flt_value] of Object.entries(filters[i])) {
+                        console.log(flt_name);
+                        console.log(flt_value);
+                        console.log($("[data-column-name='" + flt_name + "']"));
+                        //$("[data-column-name='" + flt_name + "']").val(flt_value);
+                        $("[data-column-name='" + flt_name + "']").val(flt_value);
+                    }
+                }
+            }
+        }
     }
 
     //declare onChange event for program_id control
@@ -349,6 +424,12 @@ $(document).ready(function() {
     }
 
     var data_table = function() {
+        if ($('#max_rows_msg').length) {
+            dt_height_offset_value = 350;
+        }
+        else{
+            dt_height_offset_value = 280
+            }
         return $('#report').DataTable({
             //TODO: try this dome setting, should bring search boxes on top of the table -> dom = 'lfBtip'
             dom: "<'row'<'col-sm-12 col-md-1'l><'col-sm-12 col-md-1'><'col-sm-12 col-md-3'B><'col-sm-12 col-md-1'f>>" +
@@ -358,15 +439,15 @@ $(document).ready(function() {
                 'copyHtml5', 'csvHtml5', 'colvis'
             ],
             //dom: "lfBtip",
-            // pageLength:     25, // default page lenght
+            // pageLength:     25, // default page length
             // fixedHeader:    true, // preserves header row
             keys:           true, // adds excel like filling allowing selecting current cell
             // following group of variables defines scrolling functionality
-            scrollY:        calc_datatable_height(), //600 //'70vh', //
+            scrollY:        calc_datatable_height(dt_height_offset_value), //600 //'70vh', //
             // scrollx:        true,
             scrollResize:   true,
-            // scrollCollapse: true,
-            // paging: false,
+            scrollCollapse: true,
+            paging: false,
             // lengthChange: false,
             // pageLength: 50,
 
@@ -391,6 +472,8 @@ $(document).ready(function() {
                             .search($(this).val())
                             .draw();
                     });
+
+                    assign_report_filters();
 
                     $(window).on('resize', function () {
                         //adjust datatable scroller body on windows resize

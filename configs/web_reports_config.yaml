@@ -19,7 +19,7 @@ WebReports:
             rep_id: si_sampleinfo_dataset
             sql: sql_sp_sampleinfo_dataset
             filters:
-                - { id: program_id, name: Program, type: dropdown, dropdown_default_value: 3 }
+                - { id: program_id, name: Program, type: dropdown, dropdown_default_value: 2 }
                 - { id: center_ids, name: Centers, type: multiselect, add_blank_option: true }
                 - { id: dataset_type_id, name: Dataset Type, type: dropdown, dropdown_default_value: 1 }
                 - { id: aliquot_ids, name: Aliquot Ids, type: textarea }

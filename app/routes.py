@@ -6,6 +6,8 @@ import os
 from utils import common2 as cm2, global_const as gc, scheduler
 from utils import reports as rp
 from swagger.api_spec import spec
+import pandas as pd
+import json
 
 
 @app.route('/')
@@ -364,11 +366,11 @@ def api_sampleinfo_dataset():
           - sampleinfo
     """
     # get request parameters from get or post, from query string or form
-    aliquot_ids = request.values.get('aliquot_ids')
-    aliquot_delim = request.values.get('aliquot_delim')
-    aliquot_id_contains = request.values.get('aliquot_id_contains')
-    dataset_type_id = request.values.get('dataset_type_id')
-    center_ids = request.values.get('center_ids')
+    aliquot_ids = get_web_request_value(request, 'aliquot_ids')  # request.values.get('aliquot_ids')
+    aliquot_delim = get_web_request_value(request, 'aliquot_delim')  # request.values.get('aliquot_delim')
+    aliquot_id_contains = get_web_request_value(request, 'aliquot_id_contains')  # request.values.get('aliquot_id_contains')
+    dataset_type_id = get_web_request_value(request, 'dataset_type_id')  # request.values.get('dataset_type_id')
+    center_ids = get_web_request_value(request, 'center_ids')  # request.values.get('center_ids')
     return generate_sampleinfo_dataset(center_ids, dataset_type_id, aliquot_ids, aliquot_delim, aliquot_id_contains)
     # return 'api_sampleinfo_dataset, study_group_id = {}, sample ids = {}, sample_delim = {}, study_id = {}'. \
     #     format(study_group_id, sample_ids, sample_delim, study_id)
@@ -435,7 +437,7 @@ def get_report_data():
     if req_report_id:
         reports = webrep_cfg.get_value(cfg_rep_loc)  # get list of reports from the config file
         for rep in reports:
-            if rep['rep_id'] == request.form['report_id']:
+            if rep['rep_id'] == req_report_id:  # request.form['report_id']:
                 parameters = {}
                 report_name = rep['rep_name']  # get report name from the config
                 report_id = rep['rep_id']  # get report id into a separate variable  TODO: check if this assignment can be removed
@@ -450,9 +452,14 @@ def get_report_data():
                     if filters:
                         for flt in filters:
                             if 'id' in flt:
-                                if flt['id'] in request.form:
-                                    parameters [flt['id']] = request.form[flt['id']]
-                # break
+                                val = get_web_request_value(request, flt['id'])
+                                if not val is None:
+                                    parameters[flt['id']] = val
+                                # if flt['id'] in request.form:
+                                #     parameters [flt['id']] = request.form[flt['id']]
+
+                # get column report filters
+                column_report_filters_str = get_web_request_value(request, 'column_report_filters')
 
                 # get the dataset from the database
                 result, columns, err = rp.get_dataset(mcfg, mlog, dataset_name, **parameters)
@@ -460,16 +467,63 @@ def get_report_data():
                 # check for errors and create an output
                 if err and not err.exist():
                     if result:
+                        df = pd.DataFrame(result)
+                        # get max number of rows to show on web page from the config file
+                        max_rows = mcfg.get_item_by_key('Report/max_web_rows_to_show')
+                        if not max_rows.isnumeric():
+                            max_rows = 1000  # use default value if nothing is provided in the config file
+                        else:
+                            max_rows = int(max_rows)
+
+
+                        # df = df[df['specimen_prep'].str.contains('PB', regex=False)]
+                        # df.filter(like='pb', axis=0)
+                        # df = df.loc[df['specimen_prep'] == 'pbmc']
+
+                        filters_applied = False
+                        # check if column filters were provided from UI and apply them to the DB dataset
+                        if column_report_filters_str and len(column_report_filters_str) > 0:
+                            column_report_filters = json.loads(column_report_filters_str)
+                            for cl_fl in column_report_filters:
+                                for item in cl_fl:
+                                    if len(cl_fl[item]) > 0:
+                                        df = df[df[item].str.contains(cl_fl[item], regex=False)]
+                                        filters_applied = True
+
+                        # if number of rows in the df over the max, take first records upto the maximum count
+                        if df.shape[0] > max_rows:
+                            result1 = df.iloc[0:max_rows].to_dict('records')
+                        else:
+                            result1 = df.to_dict('records')
+                            max_rows_msg = ''
+
+                        if len(result) > max_rows:
+                            if filters_applied:
+                                max_rows_msg = 'Note: {}first {} filtered rows are displayed out of {} records ' \
+                                               'returned by the database.{}' \
+                                    .format(('only ' if df.shape[0] > max_rows else ''),
+                                            len(result1),
+                                            len(result),
+                                            (' Use more detailed filtering if required records are not shown.'
+                                             if df.shape[0] > max_rows else ''))
+                            else:
+                                max_rows_msg = 'Note: only first {} rows are displayed out of {} records returned ' \
+                                               'by the database. Use more detailed filtering if required records ' \
+                                               'are not shown. ' \
+                                    .format(len(result1), len(result))
+
                         # some dataset was returned from the DB
                         if mlog:
                             mlog.info('Received response from DB for requested report id "{}", '
                                       'proceeding to render the web response.'.format(report_id))
                             cm2.stop_logger(mlog, mlog_handler)
-                        return render_template('report_data.html', report_name=report_name, columns=columns, data=result)
+                        return render_template('report_data.html', report_name=report_name, columns=columns,
+                                               data=result1, max_rows_msg = max_rows_msg,
+                                               column_report_filters = column_report_filters_str)
                     else:
                         # No dataset was returned from the DB
                         str = 'No data was returned from the database for the requested parameters.'
-                        return render_template('error.html', report_name=report_name, error=str, text_color = 'black')
+                        return render_template('no_report_data.html', msg=str, text_color = 'black')
                 else:
                     str = 'Some errors were generated during retrieving data for "{}" report (report_id = {}). ' \
                           'An email notification has been sent to the administrator. '\
