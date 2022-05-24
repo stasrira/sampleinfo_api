@@ -340,34 +340,14 @@ $(document).ready(function() {
     // assign report column filters on load; it is used when report filters were already applied to the dataset
     // on server side and now just need to be shown on UI
     var assign_report_filters = function(){
-        console.log('inside --> assign_report_filters')
         filters_str = $("#column_report_filters").text(); // get list of filters from a control
         if (Boolean(filters_str)) { // if list is not empty proceed here
-            // count = 0;
-            // // wait until data-column-name controls are loaded
-            // while ($("[data-column-name]").length = 0){
-            //     count++;
-            //     if (count > 1000) {
-            //         break;
-            //     }
-            // }
-            // console.log('count = ' + count);
-            console.log('$("[data-column-name]").length = ' + $("[data-column-name]").length);
-
             filters = JSON.parse(filters_str);
-            console.log(filters)
-            console.log(Array.isArray(filters))
+            // console.log(filters)
+            // console.log(Array.isArray(filters))
             if (Array.isArray(filters)) {
-                // // remove divisions containing copies of the column's filter input controls that are managed by DataTable
-                // // all controls being removed are not used after the Datatable was rendered
-                // $(".dataTables_sizing").remove();
-
                 for (i = 0; i < filters.length; i++) {
                     for ([flt_name, flt_value] of Object.entries(filters[i])) {
-                        console.log(flt_name);
-                        console.log(flt_value);
-                        console.log($("[data-column-name='" + flt_name + "']"));
-                        //$("[data-column-name='" + flt_name + "']").val(flt_value);
                         $("[data-column-name='" + flt_name + "']").val(flt_value);
                     }
                 }

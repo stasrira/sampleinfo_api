@@ -487,7 +487,14 @@ def get_report_data():
                             for cl_fl in column_report_filters:
                                 for item in cl_fl:
                                     if len(cl_fl[item]) > 0:
-                                        df = df[df[item].str.contains(cl_fl[item], regex=False)]
+                                        # for each not empty filter, find a corresponding column and apply the filter's
+                                        # value to keep only matching records
+                                        # astype(str) - used to convert any provided column to a string format
+                                        # regex=False - avoids checking filter's values for regex, improves speed
+                                        # na=False - avoids errors if not filled rows are present
+                                        # case=False - allows case insensitive search
+                                        df = df[df[item].astype(str).str.contains(
+                                            cl_fl[item], regex=False, na=False, case=False)]
                                         filters_applied = True
 
                         # if number of rows in the df over the max, take first records upto the maximum count
@@ -522,16 +529,16 @@ def get_report_data():
                                                column_report_filters = column_report_filters_str)
                     else:
                         # No dataset was returned from the DB
-                        str = 'No data was returned from the database for the requested parameters.'
-                        return render_template('no_report_data.html', msg=str, text_color = 'black')
+                        _str = 'No data was returned from the database for the requested parameters.'
+                        return render_template('no_report_data.html', msg=_str, text_color = 'black')
                 else:
-                    str = 'Some errors were generated during retrieving data for "{}" report (report_id = {}). ' \
+                    _str = 'Some errors were generated during retrieving data for "{}" report (report_id = {}). ' \
                           'An email notification has been sent to the administrator. '\
                         .format(report_name, report_id)
                     if mlog:
-                        mlog.info('Proceeding to report the following error to the web page: '.format(str))
+                        mlog.info('Proceeding to report the following error to the web page: '.format(_str))
                         cm2.stop_logger(mlog, mlog_handler)
-                    return render_template('error.html', report_name=report_name, error=str)
+                    return render_template('error.html', report_name=report_name, error=_str)
 
                 # get out of the loop if the report was found
                 break
