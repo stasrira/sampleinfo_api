@@ -52,7 +52,6 @@ $(document).ready(function() {
             on_program_change(); //register program id control event
             // on_filter_change(); //register filter change event
             on_run_report(); //register Run Report button click
-            on_reload_report_with_filters(); //reigster Reload Report button
 
             init_multiselect ($('#center_ids'), 'Keep blank for All or Select...');
             // init_multiselect ($('#center_id'));
@@ -303,7 +302,7 @@ $(document).ready(function() {
                     mytable.buttons()
                         .container()
                         .appendTo( '#report_wrapper .col-md-6:eq(0)' );
-                    // assign_report_filters();
+                    on_reload_report_with_filters(); //register Reload Report button
                 });
         }
 

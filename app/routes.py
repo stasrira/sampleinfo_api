@@ -506,7 +506,7 @@ def get_report_data():
 
                         if len(result) > max_rows:
                             if filters_applied:
-                                max_rows_msg = 'Note: {}first {} filtered rows are displayed out of {} records ' \
+                                max_rows_msg = '*Note: Column filters were applied - {} first {} filtered rows are displayed out of {} records ' \
                                                'returned by the database.{}' \
                                     .format(('only ' if df.shape[0] > max_rows else ''),
                                             len(result1),
@@ -514,7 +514,7 @@ def get_report_data():
                                             (' Use more detailed filtering if required records are not shown.'
                                              if df.shape[0] > max_rows else ''))
                             else:
-                                max_rows_msg = 'Note: only first {} rows are displayed out of {} records returned ' \
+                                max_rows_msg = '*Note: only first {} rows are displayed out of {} records returned ' \
                                                'by the database. Use more detailed filtering if required records ' \
                                                'are not shown. ' \
                                     .format(len(result1), len(result))
