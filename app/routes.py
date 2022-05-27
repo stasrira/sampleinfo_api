@@ -396,6 +396,7 @@ def view_reports():
 
 @app.route('/get_report_filters', methods=('get', 'post'))
 def get_report_filters():
+    err = None
     cfg_rep_loc = 'WebReports/SampleInfo'
     webrep_cfg = cm2.get_webreports_config()
 
@@ -412,11 +413,26 @@ def get_report_filters():
                     filters = rep['filters']
                     if filters:
                         for filter in filters:
-                            data = get_filter_values(filter)
-                            if 'result' in data and 'id' in data:
+                            data, err = get_filter_values(filter)
+                            if data and 'result' in data and 'id' in data:
+                                # some data was returned
                                 filters_out[data['id']] = data
-    cur_program_id = int(req_program_id if req_program_id and req_program_id.isnumeric() else -1)
-    return render_template('report_filters.html', filters=filters_out, cur_program_id = cur_program_id)
+                            if err and err.exist():
+                                # some error occurred during getting filter data
+                                break
+    if err is None or not err.exist():
+        # no errors were reported
+        cur_program_id = int(req_program_id if req_program_id and req_program_id.isnumeric() else -1)
+        return render_template('report_filters.html', filters=filters_out, cur_program_id = cur_program_id)
+    else:
+        error_num = 511
+        error_details = {
+            'error_msg': 'An unexpected error was encountered during loading report filters. An alert email was sent to the administrator.',
+            'error_num': str(error_num),
+            'instructions': 'Note: Previously selected filters were reset. Please make a new selection.',
+        }
+        # return jsonify(message = 'Errors encountered during loading filters.'), error_num
+        return render_template('report_filter_error.html', error_details = error_details), error_num
 
 @app.route('/get_report_data', methods=('get', 'post'))
 def get_report_data():
@@ -474,11 +490,6 @@ def get_report_data():
                             max_rows = 1000  # use default value if nothing is provided in the config file
                         else:
                             max_rows = int(max_rows)
-
-
-                        # df = df[df['specimen_prep'].str.contains('PB', regex=False)]
-                        # df.filter(like='pb', axis=0)
-                        # df = df.loc[df['specimen_prep'] == 'pbmc']
 
                         filters_applied = False
                         # check if column filters were provided from UI and apply them to the DB dataset
@@ -642,6 +653,7 @@ def generate_sampleinfo_dataset (center_ids, dataset_type_id, aliquot_ids, aliqu
             cm2.stop_logger(mlog, mlog_handler)
         return jsonify(message = 'Error retrieving data', status = 400)
 
+
 def get_filter_values(filter):
     mcfg = cm2.get_main_config()
     mlog, mlog_handler = cm2.get_logger()
@@ -674,8 +686,9 @@ def get_filter_values(filter):
             result = []
             for opt in filter['options']:
                 result.append({'option_id': opt['id'], 'option_name': opt['name']})
-        #if result:
+
         if not err or not err.exist():
+            # no errors reported
             filter_data['id'] = filter_id_str
             filter_data['name'] = filter_name_str
             filter_data['result'] = result
@@ -685,5 +698,7 @@ def get_filter_values(filter):
             if filter_add_blank_option:
                 filter_data['add_blank_option'] = filter_add_blank_option
             # filter_data['columns'] = columns
+        elif err.exist():
+            filter_data = None
 
-    return filter_data
+    return filter_data, err

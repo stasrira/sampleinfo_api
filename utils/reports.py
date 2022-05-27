@@ -98,7 +98,7 @@ def get_filter_data (mcfg, mlog, filter_id):
     sql = None
     process_name = inspect.stack()[1][3]
 
-    err = WebError(process_name)
+    err = WebError(process_name, mcfg, mlog)
     # verify main app settings and get config and logging references
     env_validated = cm2.check_env_variables(__file__, mlog)
     if not env_validated:
@@ -127,7 +127,7 @@ def get_filter_data (mcfg, mlog, filter_id):
             _str = 'Unexpected Error "{}" occurred during running of "{}"; ' \
                    'Here is the traceback: \n{} '.format(
                 ex, process_name, traceback.format_exc())
-            err.add_error(_str)
+            err.add_error(_str, send_email = True)
             mlog.error(_str)
 
     return result, columns, err

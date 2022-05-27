@@ -3,6 +3,11 @@ $(document).ready(function() {
     //select_report onChange event
     $('#select_report').on('change', function () {
 
+        // exit function if the first default option is selected in the "select_report" dropdown
+        if ($('#select_report :selected').prop("hidden") == true){
+            return;
+        }
+
         //assign current report title to the header
         $('#report_title').text($('#select_report :selected').text())
 
@@ -46,8 +51,15 @@ $(document).ready(function() {
             //update all filter labels with the provided width
             $(".input-group-text[filter_label_width]").css("width",filter_label_width);
 
+            //hide error message div
+            $('#filter_err_msg').hide();
+            //hide select report message div
+            $('#select_report_msg').hide();
+            //make sure that select report div is visible
+            $('#select_report_div').show();
             //display filters
             $('#filters').show();
+
 
             on_program_change(); //register program id control event
             // on_filter_change(); //register filter change event
@@ -56,71 +68,10 @@ $(document).ready(function() {
             init_multiselect ($('#center_ids'), 'Keep blank for All or Select...');
             // init_multiselect ($('#center_id'));
 
-            // //run assignment of the tooltip for pivot_by dropdown on the initial load of the filter
-            // assign_selected_option_to_tooltip ($('#pivot_by'), $('#pivot_by :selected'));
-
-            //TODO: check if this is needed
-            //assign onChaneg event to pivot_by dropdown
-            // $('#pivot_by').on('change', function () {
-            //     assign_selected_option_to_tooltip ($('#pivot_by'), $('#pivot_by :selected'));
-            // });
-
-            //TODO: check if this is needed
-            // //search box event registration
-            // search_box_event ();
-
-            //TODO: check if this is needed
-            // initilalite datepicker plugin
-            // init_datepicker();
-            // });
-
-            //for first time on loading - hides/shows studies based on the default program id selected
-            //validate_studies($('#program_id').val()); //run this function for first time on loading
-
-            // if ($("#study_id").length > 0){
-            //     if ($('#study_id[multiple="multiple"]').length > 0) {
-            //         validate_multiselect_control($("#study_id"), $('#program_id').val())
-            //     }
-            //     else {
-            //         validate_select_control($("#study_id"), $('#program_id').val(), true)
-            //     }
-            //
-            // }
-
-            // if ($("#center_id").length > 0) {
-            //     if ($('#center_id[multiple="multiple"]').length > 0) {
-            //         validate_multiselect_control($("#center_id"), $('#program_id').val())
-            //     }
-            //     else {
-            //         validate_select_control($("#center_id"), $('#program_id').val(), true)
-            //     }
-            // }
-
             //for first time on loading - hides/shows studies and/or centers based on the default program id selected
             run_select_control_validation($("#study_id"), $('#program_id').val());
             run_select_control_validation($("#center_id"), $('#program_id').val());
             run_select_control_validation($("#center_ids"), $('#program_id').val());
-
-            //TODO: check if this is needed
-            // //check if previously selected study_id can be selected again
-            // if ($('#study_id').length > 0) {
-            //     //if current study_id item belongs to the currently selected program_id
-            //     if (current_study_program_id == $('#program_id').val()) {
-            //         if ($('#study_id option[value = ' + current_study_id + ']').css('display') != 'none') {
-            //             //if the option being selected is visible
-            //             $('#study_id option[value = ' + current_study_id + ']').prop('selected', true);
-            //         }
-            //     }
-            // }
-            // if ($('#center_id').length > 0) {
-            //     //if current center_id item belongs to the currently selected program_id
-            //     if (current_center_program_id == $('#program_id').val()) {
-            //         if ($('#center_id option[value = ' + current_center_id + ']').css('display') != 'none') {
-            //             //if the option being selected is visible
-            //             $('#center_id option[value = ' + current_center_id + ']').prop('selected', true);
-            //         }
-            //     }
-            // }
 
 
             //identify if any control filters were assigned to this reports
@@ -131,6 +82,19 @@ $(document).ready(function() {
             }
 
           }
+        })
+        .fail(function(response, status) {
+            err_html = response.responseText;
+            // err_status_num = response.status;
+
+            $('#filter_err_msg').html(err_html);
+            $('#filter_err_msg').show();
+
+            $('#select_report_msg').show();
+            $('#select_report').prop('selectedIndex', 0);   //.val([]);
+            $('#select_report_div').show();
+
+            $('#filters').hide();
         });
     });
 
