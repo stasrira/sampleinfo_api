@@ -430,9 +430,10 @@ def get_report_filters():
             'error_msg': 'An unexpected error was encountered during loading report filters. An alert email was sent to the administrator.',
             'error_num': str(error_num),
             'instructions': 'Note: Previously selected filters were reset. Please make a new selection.',
+            'error_title': 'ERROR!'
         }
         # return jsonify(message = 'Errors encountered during loading filters.'), error_num
-        return render_template('report_filter_error.html', error_details = error_details), error_num
+        return render_template('display_message.html', error_details = error_details), error_num
 
 @app.route('/get_report_data', methods=('get', 'post'))
 def get_report_data():
@@ -477,6 +478,14 @@ def get_report_data():
                 # get column report filters
                 column_report_filters_str = get_web_request_value(request, 'column_report_filters')
 
+                # check if get_csv_file_only is provided and proceed with allowing to download data
+                # instead of showig the report
+                get_csv_file_only_str = get_web_request_value(request, 'get_csv_file_only')
+                if get_csv_file_only_str and get_csv_file_only_str == 'yes':
+                    get_csv_file_only = True
+                else:
+                    get_csv_file_only = False
+
                 # get the dataset from the database
                 result, columns, err = rp.get_dataset(mcfg, mlog, dataset_name, **parameters)
 
@@ -484,84 +493,119 @@ def get_report_data():
                 if err and not err.exist():
                     if result:
                         df = pd.DataFrame(result)
-                        # get max number of rows to show on web page from the config file
-                        max_rows = mcfg.get_item_by_key('Report/max_web_rows_to_show')
-                        if not max_rows.isnumeric():
-                            max_rows = 1000  # use default value if nothing is provided in the config file
-                        else:
-                            max_rows = int(max_rows)
 
-                        filters_applied = False
-                        # check if column filters were provided from UI and apply them to the DB dataset
-                        if column_report_filters_str and len(column_report_filters_str) > 0:
-                            column_report_filters = json.loads(column_report_filters_str)
-                            for cl_fl in column_report_filters:
-                                for item in cl_fl:
-                                    if len(cl_fl[item]) > 0:
-                                        # for each not empty filter, find a corresponding column and apply the filter's
-                                        # value to keep only matching records
-                                        # astype(str) - used to convert any provided column to a string format
-                                        # regex=False - avoids checking filter's values for regex, improves speed
-                                        # na=False - avoids errors if not filled rows are present
-                                        # case=False - allows case insensitive search
-                                        df = df[df[item].astype(str).str.contains(
-                                            cl_fl[item], regex=False, na=False, case=False)]
-                                        filters_applied = True
+                        # if the requested report should be displayed on a portal (vs. being provided as csv file)
+                        if not get_csv_file_only:
 
-                        # if number of rows in the df over the max, take first records upto the maximum count
-                        if df.shape[0] > max_rows:
-                            result1 = df.iloc[0:max_rows].to_dict('records')
-                        else:
-                            result1 = df.to_dict('records')
-                            max_rows_msg = ''
-
-                        if len(result) > max_rows:
-                            if filters_applied:
-                                max_rows_msg = '*Note: Column filters were applied - {} first {} filtered rows are displayed out of {} records ' \
-                                               'returned by the database.{}' \
-                                    .format(('only ' if df.shape[0] > max_rows else ''),
-                                            len(result1),
-                                            len(result),
-                                            (' Use more detailed filtering if required records are not shown.'
-                                             if df.shape[0] > max_rows else ''))
+                            # get max number of rows to show on web page from the config file
+                            max_rows = mcfg.get_item_by_key('Report/max_web_rows_to_show')
+                            if not max_rows.isnumeric():
+                                max_rows = 1000  # use default value if nothing is provided in the config file
                             else:
-                                max_rows_msg = '*Note: only first {} rows are displayed out of {} records returned ' \
-                                               'by the database. Use more detailed filtering if required records ' \
-                                               'are not shown. ' \
-                                    .format(len(result1), len(result))
+                                max_rows = int(max_rows)
 
-                        # some dataset was returned from the DB
-                        if mlog:
-                            mlog.info('Received response from DB for requested report id "{}", '
-                                      'proceeding to render the web response.'.format(report_id))
-                            cm2.stop_logger(mlog, mlog_handler)
-                        return render_template('report_data.html', report_name=report_name, columns=columns,
-                                               data=result1, max_rows_msg = max_rows_msg,
-                                               column_report_filters = column_report_filters_str)
+                            filters_applied = False
+                            # check if column filters were provided from UI and apply them to the DB dataset
+                            if column_report_filters_str and len(column_report_filters_str) > 0:
+                                column_report_filters = json.loads(column_report_filters_str)
+                                for cl_fl in column_report_filters:
+                                    for item in cl_fl:
+                                        if len(cl_fl[item]) > 0:
+                                            # for each not empty filter, find a corresponding column and apply the filter's
+                                            # value to keep only matching records
+                                            # astype(str) - used to convert any provided column to a string format
+                                            # regex=False - avoids checking filter's values for regex, improves speed
+                                            # na=False - avoids errors if not filled rows are present
+                                            # case=False - allows case insensitive search
+                                            df = df[df[item].astype(str).str.contains(
+                                                cl_fl[item], regex=False, na=False, case=False)]
+                                            filters_applied = True
+
+                            # if number of rows in the df over the max, take first records upto the maximum count
+                            if df.shape[0] > max_rows:
+                                result1 = df.iloc[0:max_rows].to_dict('records')
+                            else:
+                                result1 = df.to_dict('records')
+                                max_rows_msg = ''
+
+                            if len(result) > max_rows:
+                                if filters_applied:
+                                    max_rows_msg = '*Note: Column filters were applied - {} first {} filtered rows are displayed out of {} records ' \
+                                                   'returned by the database.{}' \
+                                        .format(('only ' if df.shape[0] > max_rows else ''),
+                                                len(result1),
+                                                len(result),
+                                                (' Use more detailed filtering if required records are not shown.'
+                                                 if df.shape[0] > max_rows else ''))
+                                else:
+                                    max_rows_msg = '*Note: only first {} rows are displayed out of {} records returned ' \
+                                                   'by the database. Use more detailed filtering if required records ' \
+                                                   'are not shown. ' \
+                                        .format(len(result1), len(result))
+
+                            # some dataset was returned from the DB
+                            if mlog:
+                                mlog.info('Received response from DB for requested report id "{}", '
+                                          'proceeding to render the web response.'.format(report_id))
+                                cm2.stop_logger(mlog, mlog_handler)
+                            return render_template('report_data.html', report_name=report_name, columns=columns,
+                                                   data=result1, max_rows_msg = max_rows_msg,
+                                                   column_report_filters = column_report_filters_str)
+                        else:
+                            # proceed here if the report has to be provided as a csv file for a download
+                            import time
+                            # prepare name for the download file
+                            ts = time.strftime("%Y%m%d_%H%M%S", time.localtime())
+                            temp_dld_file_name = str(ts + '_' + report_name + '.csv').replace(' ', '_')
+
+                            # get csv content of the dataset being downloaded
+                            csv = df.to_csv(None, encoding='utf-8', index=False)
+
+                            return jsonify(csv=csv, file_name = temp_dld_file_name)
+
                     else:
                         # No dataset was returned from the DB
                         _str = 'No data was returned from the database for the requested parameters.'
-                        return render_template('no_report_data.html', msg=_str, text_color = 'black')
+                        error_details = {
+                            'error_msg': _str,
+                            # 'error_num': '',
+                            # 'instructions': '',
+                            'error_level': 'secondary',
+                            # 'error_title': 'No Data'
+                        }
+                        return render_template('display_message.html', error_details=error_details)
+                        # return render_template('no_report_data.html', msg=_str, text_color = 'black')
                 else:
-                    _str = 'Some errors were generated during retrieving data for "{}" report (report_id = {}). ' \
-                          'An email notification has been sent to the administrator. '\
+                    _str = 'An unexpected error was encountered during retrieving data for "{}" report ' \
+                           '(report_id = {}). An email notification has been sent to the administrator. '\
                         .format(report_name, report_id)
                     if mlog:
                         mlog.info('Proceeding to report the following error to the web page: '.format(_str))
                         cm2.stop_logger(mlog, mlog_handler)
-                    return render_template('error.html', report_name=report_name, error=_str)
+
+                    error_num = 512
+                    error_details = {
+                        'error_msg': _str,
+                        'error_num': str(error_num),
+                        'instructions': 'Please try to rerun the report, if errors persist, contact the administrator.',
+                        # 'error_level': 'warning',
+                        'error_title': 'ERROR!'
+                    }
+                    return render_template('display_message.html', error_details=error_details), error_num
+
+                    # return render_template('error.html', report_name=report_name, error=_str)
 
                 # get out of the loop if the report was found
                 break
 
 def get_web_request_value (request, field_name):
     # get requested value based on the method of the request
+    value_out = None
     if request.method == 'GET':
         value_out = request.values.get(field_name)
     elif request.method == 'POST':
-        value_out = request.form[field_name]
-    else:
-        value_out = None
+        if field_name in request.form:
+            value_out = request.form[field_name]
     return value_out
 
 def generate_view(view_name):

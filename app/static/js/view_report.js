@@ -64,6 +64,7 @@ $(document).ready(function() {
             on_program_change(); //register program id control event
             // on_filter_change(); //register filter change event
             on_run_report(); //register Run Report button click
+            on_download_report(); //register Download Report button click
 
             init_multiselect ($('#center_ids'), 'Keep blank for All or Select...');
             // init_multiselect ($('#center_id'));
@@ -158,83 +159,30 @@ $(document).ready(function() {
           // });
     }
 
-    //declare onChange event for any filter change
-    var on_filter_change = function() {
-        $("#filters :input").on('change', function () {
-            //$("#program_id").on('change', function () {
-            $('#div_report').hide();
-            $('#loader').show();
-            //$('#div_report').hide();
-            //alert($('#study_id option:selected')); //$('#study_id')
-            var sel_studies_arr = [];
-            var sel_studies = '';
-            var i;
-
-            // $('#study_id option:selected').each(function() {
-            //     sel_studies = sel_studies + (',' + this.value ? sel_studies : this.value)
-            // })
-
-            if ($('#study_id option:selected')) {
-                for (i = 0; i < $('#study_id option:selected').length; i++) {
-                    sel_studies_arr[i] = $('#study_id option:selected')[i].value;
-                }
-                sel_studies = sel_studies_arr.join();
-            }
-            //console.log('Selected studies-> ' + sel_studies);
-
-            $.post("/get_report_data",
-                {
-                    report_id: $('#select_report').val() ? $('#select_report').val() : "",
-                    program_id: $('#program_id').val() ? $('#program_id').val() : "",
-                    //study_id: $('#study_id').val() ? $('#study_id').val() : "",
-                    study_id: sel_studies,
-                    aliquot_ids: $('#aliquot_ids').val() ? $('#aliquot_ids').val() : "",
-                    // date_from: $('#date_from').val() ? $('#date_from').val() : "",
-                    // date_to: $('#date_to').val() ? $('#date_to').val() : "",
-                    // pivot_by: $('#pivot_by').val() ? $('#pivot_by').val() : "",
-                },
-                function (data, status) {
-                    $('#loader').hide();
-                    $('#div_report').html(data);
-                    $('#div_report').show();
-                    var mytable = data_table();
-                    mytable.buttons()
-                        .container()
-                        .appendTo( '#report_wrapper .col-md-6:eq(0)' );
-                });
-        });
-    }
-
     on_run_report_click = function (dummy, column_filters = false) {
             //$("#program_id").on('change', function () {
             $('#div_report').hide();
             $('#loader').show();
-            //$('#div_report').hide();
-            //alert($('#study_id option:selected')); //$('#study_id')
-            var sel_centers_arr = [];
-            var sel_studies = '';
+
+            // var sel_centers_arr = [];
             var i;
 
-            // $('#study_id option:selected').each(function() {
-            //     sel_studies = sel_studies + (',' + this.value ? sel_studies : this.value)
-            // })
-
-            if ($('#center_ids')) {
-                if ($('#center_ids option:selected').length > 0) {
-                    //collect one or more selected centers from the multi-select control
-                    for (i = 0; i < $('#center_ids option:selected').length; i++) {
-                        sel_centers_arr[i] = $('#center_ids option:selected')[i].value;
-                    }
-                    sel_centers = sel_centers_arr.join();
-                } else {
-                    //if no selected centers available, collect all not disabled centers and pass them as the selected ones
-                    for (i = 0; i < $('#center_ids option[disabled!="disabled"]').length; i++) {
-                        sel_centers_arr[i] = $('#center_ids option[disabled!="disabled"]')[i].value;
-                    }
-                    sel_centers = sel_centers_arr.join();
-                }
-            }
-            // console.log('Selected studies-> ' + sel_studies);  //TODO: remove this line after testing
+            sel_centers = collect_multiselect_values ('center_ids')
+            // if ($('#center_ids')) {
+            //     if ($('#center_ids option:selected').length > 0) {
+            //         //collect one or more selected centers from the multi-select control
+            //         for (i = 0; i < $('#center_ids option:selected').length; i++) {
+            //             sel_centers_arr[i] = $('#center_ids option:selected')[i].value;
+            //         }
+            //         sel_centers = sel_centers_arr.join();
+            //     } else {
+            //         //if no selected centers available, collect all not disabled centers and pass them as the selected ones
+            //         for (i = 0; i < $('#center_ids option[disabled!="disabled"]').length; i++) {
+            //             sel_centers_arr[i] = $('#center_ids option[disabled!="disabled"]')[i].value;
+            //         }
+            //         sel_centers = sel_centers_arr.join();
+            //     }
+            // }
 
             if (column_filters && $("[data-column-name]").length > 0) {
                 // console.log(collect_report_filters());
@@ -267,8 +215,60 @@ $(document).ready(function() {
                         .container()
                         .appendTo( '#report_wrapper .col-md-6:eq(0)' );
                     on_reload_report_with_filters(); //register Reload Report button
-                });
+                })
+                .fail(function(response, status) {
+                        err_html = response.responseText;
+                        $('#loader').hide();
+                        $('#div_report').html(err_html);
+                        $('#div_report').show();
+                }
+            );
         }
+
+    on_download_report_click = function () {
+            $('#div_report').hide();
+            $('#loader').show();
+
+            // var sel_centers_arr = [];
+            var i;
+
+            sel_centers = collect_multiselect_values ('center_ids')
+
+            $.post("/get_report_data",
+                {
+                    report_id: $('#select_report').val() ? $('#select_report').val() : "",
+                    program_id: $('#program_id').val() ? $('#program_id').val() : "",
+                    study_id: $('#study_id option:selected').val(),
+                    center_id: $('#center_id option:selected').val(),
+                    center_ids: sel_centers,
+                    aliquot_ids: $('#aliquot_ids').val() ? $('#aliquot_ids').val() : "",
+                    sample_ids: $('#sample_ids').val() ? $('#sample_ids').val() : "",
+                    dataset_type_id: $('#dataset_type_id').val() ? $('#dataset_type_id').val() : "",
+                    get_csv_file_only: 'yes',
+                },
+                function (data, status) {
+                    $('#loader').hide();
+                    $('#div_report').show();
+                    // console.log(data['file_name']);
+                    // console.log(data['csv']);
+                    downloadCSV(data['csv'], data['file_name'])
+                })
+                .fail(function(response, status) {
+                        err_html = response.responseText;
+                        $('#loader').hide();
+                        $('#div_report').html(err_html);
+                        $('#div_report').show();
+                }
+            );
+        }
+
+    function downloadCSV(csvStr, file_name) {
+        var hiddenElement = document.createElement('a');
+        hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI(csvStr);
+        hiddenElement.target = '_blank';
+        hiddenElement.download = file_name;
+        hiddenElement.click();
+    }
 
     //declare onClick event for Run Report button
     var on_run_report = function() {
@@ -280,6 +280,35 @@ $(document).ready(function() {
         $("#reload_report_with_filters").click(function () {
             on_run_report_click('', true);
         })
+    }
+
+    //declare onClick event for Download Report button
+    var on_download_report = function() {
+        $("#download_report").click(on_download_report_click);
+    }
+
+    var collect_multiselect_values = function(multi_ctrl_id){
+        var sel_centers_arr = [];
+        ctrl_id = '#' + multi_ctrl_id
+        if ($(ctrl_id)) {
+                if ($(ctrl_id +' option:selected').length > 0) {
+                    //collect one or more selected centers from the multi-select control
+                    for (i = 0; i < $(ctrl_id + ' option:selected').length; i++) {
+                        sel_centers_arr[i] = $(ctrl_id + '  option:selected')[i].value;
+                    }
+                    // return sel_centers_arr.join();
+                } else {
+                    //if no selected centers available, collect all not disabled centers and pass them as the selected ones
+                    for (i = 0; i < $(ctrl_id + ' option[disabled!="disabled"]').length; i++) {
+                        sel_centers_arr[i] = $(ctrl_id + ' option[disabled!="disabled"]')[i].value;
+                    }
+                    // return sel_centers_arr.join();
+                }
+            }
+        else {
+            // return sel_centers_arr.join();
+        }
+        return sel_centers_arr.join();
     }
 
     // collect report column filters
@@ -379,7 +408,12 @@ $(document).ready(function() {
                 "<'row'<'col-sm-12'tr>>" +
                 "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
             buttons: [
-                'copyHtml5', 'csvHtml5', 'colvis'
+                'copyHtml5',
+                {
+                    extend: 'csvHtml5',
+                    text: 'CSV Filtered Data'
+                },
+                'colvis'
             ],
             //dom: "lfBtip",
             // pageLength:     25, // default page length

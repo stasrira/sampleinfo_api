@@ -84,3 +84,5 @@ class MetadataDB:
             if logger_obj:
                 logger_obj.error(_str)
 
+            return None, None
+
