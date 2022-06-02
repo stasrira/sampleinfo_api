@@ -8,6 +8,7 @@ from utils import reports as rp
 from swagger.api_spec import spec
 import pandas as pd
 import json
+from errors import WebError
 
 
 @app.route('/')
@@ -381,17 +382,47 @@ def create_swagger_spec():
 
 @app.route('/view_reports')
 def view_reports():
-    # mcfg = cm2.get_main_config()
+    mcfg = cm2.get_main_config()
     webrep_cfg = cm2.get_webreports_config()
+
+    # get list of available reports from the config
     cfg_rep_loc = 'WebReports/SampleInfo'
     reports = webrep_cfg.get_value(cfg_rep_loc)
+    # get environment name
+    env_name = os.environ.get(mcfg.get_item_by_key('Email/env_name').strip())  # get environment name
+    if not env_name:
+        env_name = 'Not Defined'
+
     if reports:
-        return render_template("view_report.html", reports = reports)
+        return render_template("view_report.html", reports = reports, environment = env_name)
     else:
+        # mcfg = cm2.get_main_config()
         mlog, mlog_handler = cm2.get_logger()
-        mlog.info('No list of available reports found in the config, check value of the "{}" parameter.'.format(cfg_rep_loc))
+        process_name = inspect.stack()[0][3]
+        err = WebError(process_name, mcfg, mlog)
+
+        _str = 'No list of available reports found in the config, check value of the "{}" parameter. ' \
+               'An alert email was sent to the administrator.' \
+            .format(cfg_rep_loc)
+        error_num = 510
+
+        mlog.info(_str)
+        err.add_error(_str,error_num, True)
+
         cm2.stop_logger(mlog, mlog_handler)
-        return render_template('error.html', report_name="View Reports", error = "No list of available reports found.")
+
+        error_details = {
+            'error_msg': _str,
+            'error_num': str(error_num),
+            'instructions': 'Please try to reload this webpage. If the error persists, contact the administrator.',
+            'error_title': 'ERROR!'
+        }
+        return render_template('display_message.html', error_details=error_details, stand_by_itself = True), error_num
+
+        # mlog, mlog_handler = cm2.get_logger()
+        # mlog.info('No list of available reports found in the config, check value of the "{}" parameter.'.format(cfg_rep_loc))
+        # cm2.stop_logger(mlog, mlog_handler)
+        # return render_template('error.html', report_name="View Reports", error = "No list of available reports found.")
 
 
 @app.route('/get_report_filters', methods=('get', 'post'))
@@ -427,7 +458,8 @@ def get_report_filters():
     else:
         error_num = 511
         error_details = {
-            'error_msg': 'An unexpected error was encountered during loading report filters. An alert email was sent to the administrator.',
+            'error_msg': 'An unexpected error was encountered during loading report filters. '
+                         'An alert email was sent to the administrator.',
             'error_num': str(error_num),
             'instructions': 'Note: Previously selected filters were reset. Please make a new selection.',
             'error_title': 'ERROR!'

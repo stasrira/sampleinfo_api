@@ -33,8 +33,12 @@
         <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <span class="navbar-brand" style="width: 50%" id="report_title"></span>
-        <p style="color: white; display: none">Text to be updated</p>
+        <span class="navbar-brand" style="text-align: center;width: 100%; " id="report_title"></span>
+        <span class="navbar-brand" style="font-size: 0.95rem;">
+            {% if environment %}
+                Environment: {{ environment }}
+            {%  endif %}
+        </span>
     </header>
     <div class="container-fluid">
         <div class="row">
@@ -90,7 +94,16 @@
             </nav>
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4" style="overflow-y: auto;">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <div id="loader" style="width: 100%; padding-left: 30%; display: none"><span class="loader"></span></div>
+                    <div id="loader" style="width: 100%; text-align: center; display: none">
+                        <span class="loader"></span>
+                        {# The following span (presenting the environment name) is added to preserve the same space as used in the title row for the same label,
+                        so the loader span will be aligned with the report name in the title row. This extra span has visibility:hidden, but still takes the space #}
+                        <span class="navbar-brand" style="font-size: 0.95rem; visibility: hidden;">
+                            {% if environment %}
+                                Environment: {{ environment }}
+                            {%  endif %}
+                        </span>
+                    </div>
                     <div id="div_report" style = "display: none;"></div>
                 </div>
             </main>

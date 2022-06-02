@@ -404,7 +404,8 @@ $(document).ready(function() {
             }
         return $('#report').DataTable({
             //TODO: try this dome setting, should bring search boxes on top of the table -> dom = 'lfBtip'
-            dom: "<'row'<'col-sm-12 col-md-1'l><'col-sm-12 col-md-1'><'col-sm-12 col-md-3'B><'col-sm-12 col-md-1'f>>" +
+            //<'col-sm-12 col-md-1'l><'col-sm-12 col-md-1'>
+            dom: "<'row'<'col-sm-12 col-md-3'B><'col-sm-12 col-md-1'f>>" +
                 "<'row'<'col-sm-12'tr>>" +
                 "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
             buttons: [
