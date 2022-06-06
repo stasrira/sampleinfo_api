@@ -35,7 +35,7 @@ WebReports:
 #              - { id: center_id, name: Centers, type: dropdown }
               - { id: sample_ids, name: Sample Ids, type: textarea }
             filter_label_width: 100px
-            helptip: This report presents Metadata (biosample id based) datasets using metadata study ids as identifiers
+            helptip: This report presents Metadata (biosample id based) datasets using study id as identifiers
         -
             rep_name: Metadata Dataset (by center id)
             rep_id: si_metadata_dataset_by_center_id
@@ -46,4 +46,4 @@ WebReports:
               - { id: center_id, name: Center, type: dropdown }
               - { id: sample_ids, name: Sample Ids, type: textarea }
             filter_label_width: 100px
-            helptip: This report presents Metadata (biosample id based) datasets using metadata study ids as identifiers
+            helptip: This report presents Metadata (biosample id based) datasets using provided center id to identify the associated study id and pull the data based on that. If multiple studies are associated with the given center id, the study id marked as default in the database will be used.

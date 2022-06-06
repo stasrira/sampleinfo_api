@@ -82,6 +82,29 @@ $(document).ready(function() {
                 $("#run_report").click();
             }
 
+            // onchange events to disable "Reload report" button if any of the filters got changed
+            $("#program_id").change(function () {
+                disable_reload_report_button();
+            })
+            $("#study_id").change(function () {
+                disable_reload_report_button();
+            })
+            $("#center_id").change(function () {
+                disable_reload_report_button();
+            })
+            $("#center_ids").change(function () {
+                disable_reload_report_button();
+            })
+            $("#dataset_type_id").change(function () {
+                disable_reload_report_button();
+            })
+            $("#sample_ids").change(function () {
+                disable_reload_report_button();
+            })
+            $("#aliquot_ids").change(function () {
+                disable_reload_report_button();
+            })
+
           }
         })
         .fail(function(response, status) {
@@ -164,48 +187,20 @@ $(document).ready(function() {
             $('#div_report').hide();
             $('#loader').show();
 
-            // var sel_centers_arr = [];
             var i;
 
-            sel_centers = collect_multiselect_values ('center_ids')
-            // if ($('#center_ids')) {
-            //     if ($('#center_ids option:selected').length > 0) {
-            //         //collect one or more selected centers from the multi-select control
-            //         for (i = 0; i < $('#center_ids option:selected').length; i++) {
-            //             sel_centers_arr[i] = $('#center_ids option:selected')[i].value;
-            //         }
-            //         sel_centers = sel_centers_arr.join();
-            //     } else {
-            //         //if no selected centers available, collect all not disabled centers and pass them as the selected ones
-            //         for (i = 0; i < $('#center_ids option[disabled!="disabled"]').length; i++) {
-            //             sel_centers_arr[i] = $('#center_ids option[disabled!="disabled"]')[i].value;
-            //         }
-            //         sel_centers = sel_centers_arr.join();
-            //     }
-            // }
-
             if (column_filters && $("[data-column-name]").length > 0) {
-                // console.log(collect_report_filters());
-                column_report_filters = collect_report_filters();
+                // console.log(collect_report_column_filters());
+                column_report_filters = collect_report_column_filters();
             } else {
                 column_report_filters = "";
             }
 
+            main_filters = collect_main_filters();
+            main_filters['column_report_filters']= column_report_filters; // add additional value to be send to the server
+
             $.post("/get_report_data",
-                {
-                    report_id: $('#select_report').val() ? $('#select_report').val() : "",
-                    program_id: $('#program_id').val() ? $('#program_id').val() : "",
-                    //study_id: $('#study_id').val() ? $('#study_id').val() : "",
-                    study_id: $('#study_id option:selected').val(),  //sel_study,
-                    center_id: $('#center_id option:selected').val(),
-                    center_ids: sel_centers,
-                    aliquot_ids: $('#aliquot_ids').val() ? $('#aliquot_ids').val() : "",
-                    sample_ids: $('#sample_ids').val() ? $('#sample_ids').val() : "",
-                    dataset_type_id: $('#dataset_type_id').val() ? $('#dataset_type_id').val() : "",
-                    column_report_filters: column_report_filters,
-                    // date_from: $('#date_from').val() ? $('#date_from').val() : "",
-                    // date_to: $('#date_to').val() ? $('#date_to').val() : "",
-                },
+                main_filters,
                 function (data, status) {
                     $('#loader').hide();
                     $('#div_report').html(data);
@@ -229,23 +224,13 @@ $(document).ready(function() {
             $('#div_report').hide();
             $('#loader').show();
 
-            // var sel_centers_arr = [];
             var i;
 
-            sel_centers = collect_multiselect_values ('center_ids')
+            main_filters = collect_main_filters(); // get values of all main filters
+            main_filters['get_csv_file_only']= 'yes'; // add additional value to be send to the server
 
             $.post("/get_report_data",
-                {
-                    report_id: $('#select_report').val() ? $('#select_report').val() : "",
-                    program_id: $('#program_id').val() ? $('#program_id').val() : "",
-                    study_id: $('#study_id option:selected').val(),
-                    center_id: $('#center_id option:selected').val(),
-                    center_ids: sel_centers,
-                    aliquot_ids: $('#aliquot_ids').val() ? $('#aliquot_ids').val() : "",
-                    sample_ids: $('#sample_ids').val() ? $('#sample_ids').val() : "",
-                    dataset_type_id: $('#dataset_type_id').val() ? $('#dataset_type_id').val() : "",
-                    get_csv_file_only: 'yes',
-                },
+                main_filters,
                 function (data, status) {
                     $('#loader').hide();
                     $('#div_report').show();
@@ -262,13 +247,14 @@ $(document).ready(function() {
             );
         }
 
-    function downloadCSV(csvStr, file_name) {
+    var downloadCSV = function(csvStr, file_name) {
         var hiddenElement = document.createElement('a');
         hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI(csvStr);
         hiddenElement.target = '_blank';
         hiddenElement.download = file_name;
         hiddenElement.click();
     }
+
 
     //declare onClick event for Run Report button
     var on_run_report = function() {
@@ -277,9 +263,28 @@ $(document).ready(function() {
 
     //declare onClick event for Reload Report With Column Filters
     var on_reload_report_with_filters = function (){
-        $("#reload_report_with_filters").click(function () {
-            on_run_report_click('', true);
-        })
+        if($("#reload_report_with_filters") !== undefined) {
+            $("#reload_report_with_filters").click(function () {
+                on_run_report_click('', true);
+
+            })
+
+            //initiate popover next to the reload button
+            enable_popover('Reload Current Report',
+                'Reload the current report applying provided column\'s filters in addition to main filters to limit the number of returned rows',
+                $("#reload_report_popover"));
+                }
+    }
+
+    var disable_reload_report_button = function(){
+        if($("#reload_report_with_filters").length != 0) {
+            // disable reload button
+            $("#reload_report_with_filters").attr('disabled', '');
+            //initiate popover next to the reload button
+            enable_popover('Reload Current Report - Disabled',
+                'Reload functionality was disabled due to changes of the main filters. Please rerun the whole report once again.',
+                $("#reload_report_popover"));
+        }
     }
 
     //declare onClick event for Download Report button
@@ -311,8 +316,24 @@ $(document).ready(function() {
         return sel_centers_arr.join();
     }
 
+    // collect values of all main filters
+    var collect_main_filters = function(){
+        main_filters =
+            {
+                report_id: $('#select_report').val() ? $('#select_report').val() : "",
+                program_id: $('#program_id').val() ? $('#program_id').val() : "",
+                study_id: $('#study_id option:selected').val(),  //sel_study,
+                center_id: $('#center_id option:selected').val(),
+                center_ids: collect_multiselect_values ('center_ids'),
+                aliquot_ids: $('#aliquot_ids').val() ? $('#aliquot_ids').val() : "",
+                sample_ids: $('#sample_ids').val() ? $('#sample_ids').val() : "",
+                dataset_type_id: $('#dataset_type_id').val() ? $('#dataset_type_id').val() : "",
+            };
+        return main_filters;
+    }
+
     // collect report column filters
-    var collect_report_filters = function(){
+    var collect_report_column_filters = function(){
         // removes divisions containing copies of the column's filter input controls that are managed by DataTable
         // all controls being removed are not used after the Datatable was rendered, however they have duplicated
         // attribute names to the actual column's search controls that complicates working with the latest
@@ -405,11 +426,15 @@ $(document).ready(function() {
         return $('#report').DataTable({
             //TODO: try this dome setting, should bring search boxes on top of the table -> dom = 'lfBtip'
             //<'col-sm-12 col-md-1'l><'col-sm-12 col-md-1'>
-            dom: "<'row'<'col-sm-12 col-md-3'B><'col-sm-12 col-md-1'f>>" +
+            dom: "<'row'<'col-sm-12 col-md-4'B><'col-sm-12 col-md-1'f>>" +
                 "<'row'<'col-sm-12'tr>>" +
                 "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
             buttons: [
-                'copyHtml5',
+                // 'copyHtml5',
+                {
+                    extend: 'copyHtml5',
+                    text: 'Copy Filtered Data'
+                },
                 {
                     extend: 'csvHtml5',
                     text: 'CSV Filtered Data'
@@ -518,9 +543,14 @@ $(document).ready(function() {
     // })
 
     //popover enabling function
-    var enable_popover = function(title, content) {
+    var enable_popover = function(title, content, popover_ctrl) {
         //$('#report_popover').popover('dispose');
-        $('#report_popover').popover('show')
+
+        if (popover_ctrl === undefined){
+            popover_ctrl = $('#report_popover') //assign default control if nothing was sent as a parameter
+        }
+
+        popover_ctrl.popover('show')
             .popover('dispose')
             .popover({
                 container: ' body',
@@ -538,25 +568,24 @@ $(document).ready(function() {
          * on button click the focus is blured thus closing the popover.
          * On hiding the popover we unbind the event listener from the button
          */
-        $('#report_popover').on('shown.bs.popover', function(){
+        popover_ctrl.on('shown.bs.popover', function(){
             //onclick event to close popover
-            $('#report_popover').on('click', function() {
-                console.log('click');
+            popover_ctrl.on('click', function() {
+                // console.log('click');
                 $(this).off('click');
-                $('#report_popover').blur();
+                popover_ctrl.blur();
             });
             //onkeyup event to close popover
             $(document).keyup(function (e) {
                 if (e.key === "Escape") { // escape key maps to keycode `27`
-                    console.log('escape');
-                    $('#report_popover').blur();
+                    // console.log('escape');
+                    popover_ctrl.blur();
                 }
             });
             // $(this).popover("hide");
         });
 
-        $('#report_popover').on('hide.bs.popover', function(){
-
+        popover_ctrl.on('hide.bs.popover', function(){
             $(document).off('keyup');
         });
 
