@@ -1,5 +1,7 @@
 from app import app
-from flask import request, jsonify, send_from_directory, render_template
+from flask import request, jsonify, send_from_directory, render_template, redirect, url_for, flash
+from flask_login import login_required
+from werkzeug.urls import url_parse
 from datetime import datetime
 import inspect
 import os
@@ -22,18 +24,13 @@ def index():
 
     if mcfg and env_validated:
         request_datetime = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        # if mlog:
-            # mlog.info('Successful processing of a request, reporting status 200.')
-            # cm2.stop_logger(mlog, mlog_handler)
-        r=request
         return jsonify(message = 'SealfonLab SampleInfo API Up and Running. Date: {}. '
                                  'For more details navigate to {}/api/docs'
                        .format(request_datetime, request.base_url), status = 200)
     else:
-        # if mlog:
-            # mlog.info('Errors were reported during validating of environment variables or reading the main config file.')
-            # cm2.stop_logger(mlog, mlog_handler)
-        return jsonify(message = 'SealfonLab SampleInfo API - Errors encountered during retrieving data.', status = 400)
+        err_code = 400
+        return jsonify(message = 'SealfonLab SampleInfo API - Errors encountered during retrieving data.',
+                       status = err_code), err_code
 
 @app.route('/favicon.ico')
 def favicon():
@@ -81,7 +78,8 @@ def api_sampleinfo_stats():
       tags:
           - statistic info
     """
-    return generate_view ('sql_view_aliquot_data_stats')
+    response, status = generate_view ('sql_view_aliquot_data_stats')
+    return response, status
 
 # returns metadata stats dataset
 @app.route('/api/metadata/stats')
@@ -99,7 +97,8 @@ def api_metadata_stats():
       tags:
           - statistic info
     """
-    return generate_view ('sql_view_metadata_stats')
+    response, status = generate_view('sql_view_metadata_stats')
+    return response, status
 
 # returns metadata dataset for the given study_id parameter (required)
 # accepts the following optional parameters: study_group_id, sample_ids, sample_delim
@@ -380,7 +379,58 @@ def api_sampleinfo_dataset():
 def create_swagger_spec():
     return jsonify(spec.to_dict())
 
-@app.route('/view_reports')
+from flask_login import current_user, login_user
+from utils import User
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    import hashlib
+
+
+    if current_user.is_authenticated:
+        return redirect(url_for('view_reports'))  # TODO: update url to be redirected
+
+    next_page = get_web_request_value(request, 'next')
+    if not next_page or url_parse(next_page).netloc != '':
+        next_page = ''
+
+    if request.method == 'GET':
+        # proceed here if GET method was used (first time visit)
+        return render_template('login.html', next_page=next_page)
+
+    # get submitted parameters
+    # user_name = get_web_request_value(request, 'user')
+    user_name = cm2.get_client_ip() + os.environ.get('ST_USER_NAME_POSTFIX')
+    pwd = get_web_request_value(request, 'pwd')
+    pwd = hashlib.md5(str(pwd).encode('utf-8')).hexdigest()
+    remember_me = True if get_web_request_value(request, 'remember_me') else False
+
+    user = User()
+    user = user.get_user(user_name)
+
+    if user is None or not user.check_password(pwd):
+        error_num = 401
+        # error_details = {
+        #     'error_msg': 'Invalid credentials were supplied - try again. '
+        #                  'Contact admin if you need help with authentication.',
+        # }
+        # err_msg = render_template('display_message.html', error_details=error_details)
+        flash('Invalid credentials were supplied. Contact admin if you need help with authentication.')
+        # return redirect(url_for('login'))
+        return render_template('login.html', next_page=next_page, remember_me=remember_me), error_num
+
+    # save user to the session
+    login_user(user, remember = remember_me)  # remember=True
+
+    # list of call back urls used by view_reports
+    view_report_ajax_calls = ['/get_report_filters', '/get_report_data']
+    # adjust next_page value if it is not set or belongs to some of the ajax call backs used by view_reports
+    if not next_page or next_page in view_report_ajax_calls:
+        next_page = url_for('view_reports')
+    return redirect(next_page)
+
+@app.route('/view_reports', methods=['GET', 'POST'])
+@login_required
 def view_reports():
     mcfg = cm2.get_main_config()
     webrep_cfg = cm2.get_webreports_config()
@@ -424,8 +474,8 @@ def view_reports():
         # cm2.stop_logger(mlog, mlog_handler)
         # return render_template('error.html', report_name="View Reports", error = "No list of available reports found.")
 
-
 @app.route('/get_report_filters', methods=('get', 'post'))
+@login_required
 def get_report_filters():
     err = None
     cfg_rep_loc = 'WebReports/SampleInfo'
@@ -464,10 +514,10 @@ def get_report_filters():
             'instructions': 'Note: Previously selected filters were reset. Please make a new selection.',
             'error_title': 'ERROR!'
         }
-        # return jsonify(message = 'Errors encountered during loading filters.'), error_num
         return render_template('display_message.html', error_details = error_details), error_num
 
 @app.route('/get_report_data', methods=('get', 'post'))
+@login_required
 def get_report_data():
     cfg_rep_loc = 'WebReports/SampleInfo'
     mcfg = cm2.get_main_config()
@@ -643,9 +693,6 @@ def get_web_request_value (request, field_name):
 def generate_view(view_name):
     mcfg = cm2.get_main_config()
     mlog, mlog_handler = cm2.get_logger(cm2.get_client_ip())
-    # result = None
-    # columns = None
-    # err = None
     process_name = inspect.stack()[1][3]
 
     if mlog:
@@ -656,25 +703,16 @@ def generate_view(view_name):
 
     # check for errors and create an output
     if err and not err.exist():
+        status = 200
         if mlog:
             mlog.info('Received response from DB, proceeding to render the api response.')
             cm2.stop_logger(mlog, mlog_handler)
-        # return jsonify(result), 200
-        return jsonify(data=result, status=200)
-        # return json.dumps(result, sort_keys=False)
-        #     {
-        #     'status': 'OK',
-        #     'data': json.dumps(result, default=str)  # result
-        # }
+        return jsonify(data=result, status=status), status
     else:
+        status = 400
         mlog.info('Proceeding to report an error.')
         cm2.stop_logger(mlog, mlog_handler)
-        return jsonify(message = 'Error retrieving data', status = 400)
-        # return {
-        #     'status': 'ERROR',
-        #     'status_desc': 'Internal error',
-        #     'data': '' # json.dumps(result, default=str)
-        # }
+        return jsonify(message = 'Error retrieving data', status = status), status
 
 def generate_metadata_dataset (study_id, center_id, sample_ids, sample_delim):
     mcfg = cm2.get_main_config()
@@ -728,7 +766,6 @@ def generate_sampleinfo_dataset (center_ids, dataset_type_id, aliquot_ids, aliqu
             mlog.info('Proceeding to report an error.')
             cm2.stop_logger(mlog, mlog_handler)
         return jsonify(message = 'Error retrieving data', status = 400)
-
 
 def get_filter_values(filter):
     mcfg = cm2.get_main_config()

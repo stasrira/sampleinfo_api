@@ -1,6 +1,11 @@
 from flask import Flask, jsonify
+from flask_login import LoginManager
+
+
 app = Flask(__name__)
-app.config['JSON_SORT_KEYS'] = False  # this will preserve order of the fields outputted to JSON
+
+login = LoginManager(app)
+login.login_view = 'login'
 
 from app import routes
 
@@ -36,13 +41,8 @@ def handle_error(error):
         if mlog:
             mlog.critical(_str)
     else:
-        # just record error in log
         msg = error.description
-        # if mlog:
-        #     mlog.warning('Non-critical error has occurred during processing the following URL request: "{}". '
-        #                  'Code: {}. Error: {}'.format(url, code, error.name))
-
-    return jsonify(message = msg, status = code)
+    return jsonify(message = msg, status = code), code
 
 for exc in default_exceptions:
     app.register_error_handler(exc, handle_error)

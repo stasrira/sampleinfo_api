@@ -9,7 +9,9 @@ load_dotenv(path.join(basedir, '.flaskenv'))
 load_dotenv(path.join(basedir, '.env'))
 
 if __name__ == "__main__":
-    # load_dotenv('.flaskenv')
+
+    app.config['JSON_SORT_KEYS'] = False  # this will preserve order of the fields outputted to JSON
+    app.config['SECRET_KEY'] = environ.get('ST_SECRET_KEY') or 'you-will-never-guess'  # required to operate flask_login
 
     # get host and port for running flask
     host = environ.get('FLASK_RUN_HOST')

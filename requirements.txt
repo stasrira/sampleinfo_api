@@ -8,3 +8,4 @@ apispec~=4.4.1
 marshmallow~=3.12.1
 
 pandas==1.0.3
+flask-login==0.6.1
