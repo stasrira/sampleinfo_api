@@ -87,9 +87,11 @@
     {#textarea#}
     {% if filters[filter]['type'] == 'textarea' %}
         <div class="input-group mb-1">
-            <span class="input-group-text" style="width: 100px" filter_label_width>{{ filters[filter]['name'] }}</span>
-            <textarea  id = "{{ filter }}" class="form-control" data-clear-btn="true" rows="1"></textarea>
-{#            <label for="{{ filter }}">{{ filters[filter]['name'] }}</label>#}
+            <div class="input-group-text flex-column" style="width: 100px" filter_label_width>
+                {{ filters[filter]['name'] }}
+                <button class="btn btn-outline-secondary mt-1 p-0" name = "clear_text_btn" clear_target="{{ filter }}" style="width: 50%;font-size: small;">Clear</button>
+            </div>
+            <textarea  id = "{{ filter }}" class="form-control" data-clear-btn="true" rows="2"></textarea>
         </div>
     {% endif %}
 

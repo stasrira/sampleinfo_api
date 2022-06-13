@@ -51,6 +51,10 @@ $(document).ready(function() {
             //update all filter labels with the provided width
             $(".input-group-text[filter_label_width]").css("width",filter_label_width);
 
+            $('[name="clear_text_btn"]').on('click', function(){
+                $("#" + $(this).attr('clear_target')).val('');
+            })
+
             //hide error message div
             $('#filter_err_msg').hide();
             //hide select report message div
