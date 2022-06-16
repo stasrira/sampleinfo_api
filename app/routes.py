@@ -603,6 +603,19 @@ def get_report_data():
                                                 cl_fl[item], regex=False, na=False, case=False)]
                                             filters_applied = True
 
+                            # check if any columns have to be deleted from the final dataset based on the config
+                            if 'remove_columns_from_dataset' in rep:
+                                # if the current report has assigned columns to be deleted from the data frame
+                                delete_columns = rep['remove_columns_from_dataset']
+                                if delete_columns:
+                                    # loop through the list of columns and delete them one by one
+                                    for del_col in delete_columns:
+                                        if del_col in df.columns:  # check if column exists in the dataframe
+                                            df = df.drop(del_col, 1)
+
+                            # get the latest list of columns out of the current dataframe object
+                            columns_to_web = [ (col,'') for col in df.columns ]
+
                             # if number of rows in the df over the max, take first records upto the maximum count
                             if df.shape[0] > max_rows:
                                 result1 = df.iloc[0:max_rows].to_dict('records')
@@ -612,13 +625,19 @@ def get_report_data():
 
                             if len(result) > max_rows:
                                 if filters_applied:
-                                    max_rows_msg = '*Note: Column filters were applied - {} first {} filtered rows are displayed out of {} records ' \
-                                                   'returned by the database.{}' \
-                                        .format(('only ' if df.shape[0] > max_rows else ''),
-                                                len(result1),
-                                                len(result),
-                                                (' Use more detailed filtering if required records are not shown.'
-                                                 if df.shape[0] > max_rows else ''))
+                                    # column filters were applied, prepare a message to display
+                                    if df.shape[0] > max_rows:
+                                        # not all filtered rows can be displayed on the website
+                                        max_rows_msg = '*Note: Column filters were applied - first {} rows are ' \
+                                                       'displayed out of {} filtered records received from the ' \
+                                                       'database. Use more detailed filtering if required ' \
+                                                       'records are not shown.' \
+                                            .format(len(result1), df.shape[0])
+                                    else:
+                                        # all filtered rows can be displayed on the website
+                                        max_rows_msg = '*Note: Column filters were applied - all {} filtered rows ' \
+                                                       'received from the database are displayed.' \
+                                            .format(len(result1))
                                 else:
                                     max_rows_msg = '*Note: only first {} rows are displayed out of {} records returned ' \
                                                    'by the database. Use more detailed filtering if required records ' \
@@ -630,7 +649,7 @@ def get_report_data():
                                 mlog.info('Received response from DB for requested report id "{}", '
                                           'proceeding to render the web response.'.format(report_id))
                                 cm2.stop_logger(mlog, mlog_handler)
-                            return render_template('report_data.html', report_name=report_name, columns=columns,
+                            return render_template('report_data.html', report_name=report_name, columns=columns_to_web,
                                                    data=result1, max_rows_msg = max_rows_msg,
                                                    column_report_filters = column_report_filters_str)
                         else:

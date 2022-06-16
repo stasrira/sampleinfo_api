@@ -214,6 +214,12 @@ $(document).ready(function() {
                         .container()
                         .appendTo( '#report_wrapper .col-md-6:eq(0)' );
                     on_reload_report_with_filters(); //register Reload Report button
+
+
+                    $("#copySelectionButton").click(function () {
+                        copy_selection ('', mytable);
+                    })
+
                 })
                 .fail(function(response, status) {
                         err_html = response.responseText;
@@ -259,6 +265,78 @@ $(document).ready(function() {
         hiddenElement.click();
     }
 
+    var copy_selection = function (dummy, mytable) {
+
+        // mytable.cells( { selected: true } )[0].forEach((element, index) => console.log(element, mytable.cells({ selected: true }).data()[index]) );
+        // console.log(mytable.cells({ selected: true })[0])
+        // console.log ('In copy_selection function!')
+
+        cell_delim = "\t"
+        row_delim = "\r\n"
+
+        col_min = 0
+        for (i = 0; i < mytable.cells( { selected: true } )[0].length; i++) {
+                element = mytable.cells({ selected: true })[0][i]
+                // console.log(col_min, element["column"], element["row"], mytable.cells({ selected: true }).data()[i])
+                if (col_min == 0 || col_min > element["column"]) {
+                    col_min = element["column"];
+                }
+            }
+        // console.log(col_min);
+
+        // testString = mytable.cells({ selected: true }).data()[0];
+        selection_str = '';
+        for (i = 0; i < mytable.cells( { selected: true } )[0].length; i++) {
+            cur_col = mytable.cells({ selected: true } )[0][i].column;  //current column #
+            cur_row = mytable.cells({ selected: true } )[0][i].row;  //current row #
+
+            if (i==0) {
+                // processing the first cell
+                if (cur_col > col_min) {
+                    for (j = 1; j <= cur_col - col_min; j++) {
+                        selection_str += cell_delim
+                    }
+                }
+            }
+            else {
+                // process all other cells
+                prev_row = mytable.cells({selected: true})[0][i - 1].row;
+                if (cur_row > prev_row) {
+                    // change of row is identified
+                    for (r = 1; r <= cur_row - prev_row; r++) {
+                            // add row delimiter for each row identified as difference between these neighbour cells
+                            selection_str += row_delim
+                        }
+                    // selection_str += row_delim  // add row delimiter
+
+                    // check if the first column of the new row > col_min and add cell delimiters if needed
+                    if (cur_col > col_min) {
+                        for (j = 1; j <= cur_col - col_min; j++) {
+                            selection_str += cell_delim
+                        }
+                    }
+                }
+                else {
+                    cell_diff = mytable.cells({selected: true})[0][i].column - mytable.cells({selected: true})[0][i - 1].column
+                    for (k = 1; k <= cell_diff; k++) {
+                            selection_str += cell_delim
+                        }
+                }
+            }
+            // add the cell value to the string
+            selection_str += mytable.cells({selected: true}).data()[i];
+        }
+
+        // console.log(selection_str)
+
+        // copy prepared string to clipboard
+        navigator.clipboard.writeText(selection_str).then(function() {
+          console.log('Async: Copying to clipboard was successful!');
+        }, function(err) {
+          console.error('Async: Could not copy text: ', err);
+        });
+
+    }
 
     //declare onClick event for Run Report button
     var on_run_report = function() {
@@ -430,11 +508,10 @@ $(document).ready(function() {
         return $('#report').DataTable({
             //TODO: try this dome setting, should bring search boxes on top of the table -> dom = 'lfBtip'
             //<'col-sm-12 col-md-1'l><'col-sm-12 col-md-1'>
-            dom: "<'row'<'col-sm-12 col-md-4'B><'col-sm-12 col-md-1'f>>" +
+            dom: "<'row'<'col-sm-12 col-md-8'B><'col-sm-12 col-md-1'f>>" +
                 "<'row'<'col-sm-12'tr>>" +
                 "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
             buttons: [
-                // 'copyHtml5',
                 {
                     extend: 'copyHtml5',
                     text: 'Copy Filtered Data'
@@ -443,12 +520,24 @@ $(document).ready(function() {
                     extend: 'csvHtml5',
                     text: 'CSV Filtered Data'
                 },
-                'colvis'
+                {
+                    text: 'Copy Selected',
+                    action: function ( e, dt, node, config ) {
+                        $("#copySelectionButton").click();
+                        // alert('Button activated');
+                    }
+                },
+                'colvis',
             ],
+
             //dom: "lfBtip",
             // pageLength:     25, // default page length
             // fixedHeader:    true, // preserves header row
             keys:           true, // adds excel like filling allowing selecting current cell
+            select: {
+                style: 'os',
+                items: 'cell'
+            },
             // following group of variables defines scrolling functionality
             scrollY:        calc_datatable_height(dt_height_offset_value), //600 //'70vh', //
             // scrollx:        true,
@@ -458,27 +547,27 @@ $(document).ready(function() {
             // lengthChange: false,
             // pageLength: 50,
 
-                deferRender: true,
-                // scroller:       true,
-                // scroller: {
-                //     loadingIndicator: true
-                // },
-                initComplete: function () {
-                    var table = this; //reference to the DataTable
+            deferRender: true,
+            // scroller:       true,
+            // scroller: {
+            //     loadingIndicator: true
+            // },
+            initComplete: function () {
+                var table = this; //reference to the DataTable
 
-                    // $('.dataTables_scrollBody').height(calc_datatable_height()) //set scroller body height to match the size of the window
-                    //adjust_scrollbody_height_to_match_datatable(); //adjust scroller body height to match datatable height (needed for small datasets)
-                    // adjust_scrollbody_width_to_fit_window(); //adjust scroller body width to match the width of the window
+                // $('.dataTables_scrollBody').height(calc_datatable_height()) //set scroller body height to match the size of the window
+                //adjust_scrollbody_height_to_match_datatable(); //adjust scroller body height to match datatable height (needed for small datasets)
+                // adjust_scrollbody_width_to_fit_window(); //adjust scroller body width to match the width of the window
 
-                    //setup events handler for all controls with "data-column-name" attribute name
-                    $("[data-column-name]").on('keyup change clear', function () {
-                        //console.log($(this).attr("data-column-name") + " : " + $(this).val());
-                        //console.log(table.api().columns());
-                        table.api()
-                            .columns($(this).attr("data-column-id"))
-                            .search($(this).val())
-                            .draw();
-                    });
+                //setup events handler for all controls with "data-column-name" attribute name
+                $("[data-column-name]").on('keyup change clear', function () {
+                    //console.log($(this).attr("data-column-name") + " : " + $(this).val());
+                    //console.log(table.api().columns());
+                    table.api()
+                        .columns($(this).attr("data-column-id"))
+                        .search($(this).val())
+                        .draw();
+                });
 
                     assign_report_filters();
 
