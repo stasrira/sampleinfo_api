@@ -329,12 +329,37 @@ $(document).ready(function() {
 
         // console.log(selection_str)
 
-        // copy prepared string to clipboard
-        navigator.clipboard.writeText(selection_str).then(function() {
-          console.log('Async: Copying to clipboard was successful!');
-        }, function(err) {
-          console.error('Async: Could not copy text: ', err);
-        });
+        // set global toastr properties (reference: https://github.com/CodeSeven/toastr)
+        toastr.options = {
+          "closeButton": false,
+          "debug": false,
+          "newestOnTop": false,
+          "progressBar": true,
+          "positionClass": "toast-bottom-right",
+          "preventDuplicates": false,
+          "onclick": null,
+          "showDuration": "300",
+          "hideDuration": "1000",
+          "timeOut": "5000",
+          "extendedTimeOut": "1000",
+          "showEasing": "swing",
+          "hideEasing": "linear",
+          "showMethod": "fadeIn",
+          "hideMethod": "fadeOut"
+        }
+        if (selection_str.length > 0) {
+            // copy prepared string to clipboard
+            navigator.clipboard.writeText(selection_str).then(function () {
+                // console.log('Async: Copying to clipboard was successful!');
+                toastr.success('Selection was copied to clipboard.');
+            }, function (err) {
+                // console.error('Async: Could not copy text: ', err);
+                toastr.error('Error while copying to clipboard!')
+            });
+        }
+        else {
+            toastr.warning('No selection was detected, nothing was copied.', '', {timeOut: 10000})
+        }
 
     }
 
@@ -524,7 +549,6 @@ $(document).ready(function() {
                     text: 'Copy Selected',
                     action: function ( e, dt, node, config ) {
                         $("#copySelectionButton").click();
-                        // alert('Button activated');
                     }
                 },
                 'colvis',
