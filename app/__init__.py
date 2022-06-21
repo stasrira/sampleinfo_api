@@ -7,6 +7,19 @@ app = Flask(__name__)
 login = LoginManager(app)
 login.login_view = 'login'
 
+from os import environ, path
+from pathlib import Path
+from dotenv import load_dotenv
+
+# load environment variables from files
+# basedir = path.abspath(path.dirname(__file__))
+basedir = Path(__file__).parent.parent.absolute()  # rood directory of the project
+load_dotenv(path.join(basedir, '.flaskenv'))
+load_dotenv(path.join(basedir, '.env'))
+
+app.config['JSON_SORT_KEYS'] = False  # this will preserve order of the fields outputted to JSON
+app.config['SECRET_KEY'] = environ.get('ST_SECRET_KEY') or 'you-will-never-guess'  # required to operate flask_login
+
 from app import routes
 
 # global error handler setup
