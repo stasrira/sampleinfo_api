@@ -19,7 +19,14 @@ DB:
 
     # sql call for metadata dataset
     sql_sp_metadata: exec usp_get_metadata
+    # sql call for sample info (manifest id based) dataset
     sql_sp_sampleinfo_dataset: usp_get_aliquot_dataset
+
+    # sql calls to get contents for report filters
+    sql_get_programs: exec dbo.usp_get_programs_for_filters
+    sql_get_centers: exec dbo.usp_get_centers_for_filters
+    sql_get_studies: exec dbo.usp_get_studies_for_filters
+    sql_get_dataset_types: exec dbo.usp_get_aliquot_dataset_types_for_filters
 
     # sql parameters
     param_study_id: "@study_id = {study_id}"
@@ -67,3 +74,6 @@ Validate:
             - ST_DB_USER_PWD
             - ST_SMTP_SERVER
             - ST_ENV_NAME
+
+Report:
+    max_web_rows_to_show: 1000

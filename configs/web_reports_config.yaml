@@ -1,0 +1,74 @@
+WebReports:
+    SampleInfo:
+        -
+            rep_name: Metadata Stats
+            rep_id: si_metadata_stats
+            sql: sql_view_metadata_stats
+            filters:
+            run_on_load: True
+            helptip: This reports presents list (with the statistic info) of available metadata datasets
+        -
+            rep_name: SampleInfo Stats
+            rep_id: si_samlpeinfo_stats
+            sql: sql_view_aliquot_data_stats
+            filters:
+            run_on_load: True
+            helptip: This reports presents list (with the statistic info) of available sample info (aliquot id based) datasets
+        -
+            rep_name: SampleInfo Dataset
+            rep_id: si_sampleinfo_dataset
+            sql: sql_sp_sampleinfo_dataset
+            filters:
+                - { id: program_id, name: Program, type: dropdown, dropdown_default_value: 2 }
+                - { id: center_ids, name: Centers, type: multiselect, add_blank_option: true }
+                - { id: dataset_type_id, name: Dataset Type, type: dropdown, dropdown_default_value: 1 }
+                - { id: aliquot_ids, name: Aliquot Ids, type: textarea }
+            filter_label_width: 110px
+            helptip: This report presents Sample Info (aliuquot id based) datasets
+            remove_columns_from_dataset:
+                - _aliquot_id
+                - _sample_id
+                - _program_id
+#                - _program_name
+                - _center_id
+#                - _center_name
+                - _dataset_type_id
+#                - _dataset_type_name
+        -
+            rep_name: Metadata Dataset (by study id)
+            rep_id: si_metadata_dataset_by_study_id
+            sql: sql_sp_metadata
+            filters:
+              - { id: program_id, name: Program, type: dropdown }
+              - { id: study_id, name: Study, type: dropdown }
+#              - { id: center_id, name: Centers, type: dropdown }
+              - { id: sample_ids, name: Sample Ids, type: textarea }
+            filter_label_width: 100px
+            helptip: This report presents Metadata (biosample id based) datasets using study id as identifiers
+            remove_columns_from_dataset:
+                - _sample_id
+                - _program_id
+#                - _program_name
+                - _center_id
+#                - _center_name
+                - _study_id
+#                - _study_name
+        -
+            rep_name: Metadata Dataset (by center id)
+            rep_id: si_metadata_dataset_by_center_id
+            sql: sql_sp_metadata
+            filters:
+              - { id: program_id, name: Program, type: dropdown }
+#              - { id: study_id, name: Studies, type: dropdown }
+              - { id: center_id, name: Center, type: dropdown }
+              - { id: sample_ids, name: Sample Ids, type: textarea }
+            filter_label_width: 100px
+            helptip: This report presents Metadata (biosample id based) datasets using provided center id to identify the associated study id and pull the data based on that. If multiple studies are associated with the given center id, the study id marked as default in the database will be used.
+            remove_columns_from_dataset:
+                - _sample_id
+                - _program_id
+#                - _program_name
+                - _center_id
+#                - _center_name
+                - _study_id
+#                - _study_name

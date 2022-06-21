@@ -1,0 +1,57 @@
+
+
+{%  if error_msg|length == 0 %}
+        {%  if max_rows_msg|length > 0 %}
+            <div class="alert alert-warning mb-2 p-1" role="alert" id="reload_report_div" style="display: flex; align-items: center;">
+                <div style="float:left; padding-right: 20px;">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="reload_report_with_filters"
+                        >Reload Report With Column Filters Applied</button>
+                    <a tabindex="0" class="btn p-0" id="reload_report_popover">
+                        <i class="far fa-question-circle" style="color:blue"></i>
+                    </a>
+                </div>
+                <div id="max_rows_msg" style="vertical-align: middle;">{{ max_rows_msg }}</div>
+            </div>
+        {% endif %}
+    {% endif %}
+    {%  if column_report_filters|length > 0 %}
+        <div id="column_report_filters" style="display: none">{{ column_report_filters }}</div>
+    {% endif %}
+{#    <div id="warning_not_full_dataset">Warning text goes here</div>#}
+    <table id="report" class="table table-hover table-bordered display" style="width:100%">
+        <thead>
+            <tr>
+                {% for col in columns %}
+                    <th style="text-align: center; vertical-align: center;padding-right: 0px;">
+                        <div style = 'height: 20px;margin-top: 6px; margin-bottom: 6px;padding: 0 10px;'>
+{#                            {% if not 'date' in col[0] %}#}
+                            <input data-column-name="{{ col[0] }}" data-column-id="{{ loop.index0 }}"
+                                   placeholder="Search {{ col[0] }}"
+                                   style="width: 100%; min-width: 40px;"
+                            > <!--max-width: 400px -->
+{#                            {% endif %}#}
+                        </div>
+                    </th>
+                {% endfor %}
+            </tr>
+            <tr>
+                {% for col in columns %}
+                    <th style="text-align: center; vertical-align: center">
+                        {{ col[0] }}
+                    </th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in data %}
+                <tr>
+                {% for col in columns %}
+                    <td>{{ row[col[0]] }}</td>
+                {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {# this button's click event is triggered by Copy Selected button from the Datatables button   #}
+    <button id="copySelectionButton" style="display: none">copySelectionButton</button>

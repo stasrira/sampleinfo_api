@@ -1,0 +1,19 @@
+{% extends "report_base.html" %}
+
+{% block styles %}
+    <link href="https://cdn.datatables.net/1.10.23/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap-switch-button@1.1.0/css/bootstrap-switch-button.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+    {% if text_color == None %}
+        {% set text_color = '#ff0000' %}
+    {% endif %}
+    <div style="color: {{text_color}}; font-size: medium; margin-top: 20px; margin-left: 100px">
+    {%  if error|length > 0 %}
+        {{ error }}
+    {% else %}
+        Unexpected error has occurred, sorry for the inconvenience. An email notification has been sent to the administrator.
+    {% endif %}
+    </div>
+{% endblock %}

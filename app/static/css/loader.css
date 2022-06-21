@@ -1,0 +1,44 @@
+.loader {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+  border: 10px solid;
+  border-color: rgba(10, 10, 10, 0.15) rgba(10, 10, 10, 0.25) rgba(10, 10, 10, 0.35) rgba(10, 10, 10, 0.5);
+  box-sizing: border-box;
+  animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.dataTable td {
+  overflow: hidden; /* this is what fixes the expansion */
+  text-overflow: ellipsis; /* not supported in all browsers, but I accepted the tradeoff */
+  white-space: nowrap;
+  font-size: small;
+  padding: 0.1rem 0.1rem;
+}
+
+.dataTable th {
+  font-size: small;
+  padding: 0.1rem 0.1rem;
+  /*width: 100%;*/
+}
+
+/*.dataTable input {*/
+/*  width: 100%;*/
+/*}*/
+
+/*creates limit of width used by data table, but makes body of the table moving without headers*/
+/*div.dataTables_wrapper {*/
+/*        width: 1200px;*/
+/*        margin: 0 auto;*/
+/*    }*/
