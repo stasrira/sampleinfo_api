@@ -349,18 +349,45 @@ $(document).ready(function() {
         }
         if (selection_str.length > 0) {
             // copy prepared string to clipboard
-            navigator.clipboard.writeText(selection_str).then(function () {
-                // console.log('Async: Copying to clipboard was successful!');
+            copy_outcome = copyToClipboard(selection_str);
+            if (copy_outcome){
                 toastr.success('Selection was copied to clipboard.');
-            }, function (err) {
-                // console.error('Async: Could not copy text: ', err);
+            }
+            else {
                 toastr.error('Error while copying to clipboard!')
-            });
+            }
         }
         else {
             toastr.warning('No selection was detected, nothing was copied.', '', {timeOut: 10000})
         }
+    }
 
+    var copyToClipboard = function(textToCopy){
+        // navigator clipboard api needs a secure context (https)
+        if (navigator.clipboard && window.isSecureContext) {
+            // navigator clipboard api method'
+            return navigator.clipboard.writeText(textToCopy);
+        } else {
+            // text area method
+            let textArea = document.createElement("textarea");
+            textArea.value = textToCopy;
+            // make the textarea out of viewport
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            textArea.style.top = "-999999px";
+            // textArea.style.left = "10px";
+            // textArea.style.top = "200px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                var outcome = document.execCommand('copy');
+            } catch (err) {
+                outcome = false;
+            }
+            textArea.remove();
+            return outcome;
+        }
     }
 
     //declare onClick event for Run Report button
@@ -373,7 +400,6 @@ $(document).ready(function() {
         if($("#reload_report_with_filters") !== undefined) {
             $("#reload_report_with_filters").click(function () {
                 on_run_report_click('', true);
-
             })
 
             //initiate popover next to the reload button
