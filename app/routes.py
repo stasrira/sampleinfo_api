@@ -11,6 +11,8 @@ from swagger.api_spec import spec
 import pandas as pd
 import json
 from errors import WebError
+from flask_login import current_user, login_user
+from utils import User
 
 
 @app.route('/')
@@ -379,13 +381,9 @@ def api_sampleinfo_dataset():
 def create_swagger_spec():
     return jsonify(spec.to_dict())
 
-from flask_login import current_user, login_user
-from utils import User
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     import hashlib
-
 
     if current_user.is_authenticated:
         return redirect(url_for('view_reports'))  # TODO: update url to be redirected

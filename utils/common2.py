@@ -155,3 +155,6 @@ def get_client_ip():
         return request.environ['REMOTE_ADDR']
     else:
         return request.environ['HTTP_X_FORWARDED_FOR']  # if behind a proxy
+
+def ldap_connect():
+    import ldap
