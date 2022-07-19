@@ -51,7 +51,7 @@ def stop_logger(logger, handler):
 
 def clean_log_directory():
     import time
-    from datetime import datetime
+    # from datetime import datetime
 
     # print ('Starting clean_log_directory, {}'.format(datetime.now().strftime("%d/%m/%Y %H:%M:%S")))
 
@@ -90,6 +90,7 @@ def check_env_variables(call_from_file, log_ref = None):
     valid_msg = ''
     if not gc.env_validated:
         mlog = None
+        mlog_handler = None
         if not log_ref:
             # if logger object was not provided, open a new log
             mlog, mlog_handler = get_logger(get_client_ip())
@@ -102,7 +103,7 @@ def check_env_variables(call_from_file, log_ref = None):
             gc.main_cfg, ['default'],
             '{}=>{}'.format(call_from_file, caller)
         )
-        if mlog:
+        if mlog and mlog_handler:
             # close logging if it was open inside this function
             stop_logger(mlog, mlog_handler)
     return gc.env_validated, valid_msg
@@ -117,8 +118,6 @@ def validate_available_envir_variables (mlog, m_cfg, env_cfg_groups = None, proc
         env_cfg_groups = []
     if not isinstance(env_cfg_groups, list):
         env_cfg_groups = [env_cfg_groups]
-
-    app_path_to_report =Path(os.path.abspath(__file__)).parent.absolute()
 
     if mlog:
         mlog.info('Start validating presence of required environment variables.')
@@ -156,5 +155,44 @@ def get_client_ip():
     else:
         return request.environ['HTTP_X_FORWARDED_FOR']  # if behind a proxy
 
-def ldap_connect():
-    import ldap
+def validate_user_existence(user):
+    from utils import LdapConnect
+
+    user_exists = False
+
+    mlog, mlog_handler = get_logger(get_client_ip())
+    ldc = LdapConnect(mlog)
+    if ldc.connected:
+        if ldc.validate_user_existence(user):
+            user_exists = True
+
+    if mlog and mlog_handler:
+        # close logging if it was open inside this function
+        stop_logger(mlog, mlog_handler)
+
+    return user_exists
+
+def validate_user_login(user, pwd):
+    from utils import LdapConnect
+
+    member_of = os.environ.get('ST_LDAP_USER_MEMBER_OF')
+
+    mlog, mlog_handler = get_logger(get_client_ip())
+    ldc = LdapConnect(mlog)
+    if mlog and mlog_handler:
+        # close logging if it was open inside this function
+        stop_logger(mlog, mlog_handler)
+    if ldc.connected:
+        user_valid, error_str = ldc.validate_user_credentials_by_email(user, pwd)
+        if user_valid:
+            # valid credentials
+            if ldc.validate_member_of_assignment(user, member_of):
+                # valid group assignment
+                return True, None
+            else:
+                # wrong group assignment
+                return False, 'No rights to view data'
+        else:
+            # wrong credentials
+            return False, 'Wrong credentials'
+
