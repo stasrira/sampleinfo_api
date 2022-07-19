@@ -1,4 +1,4 @@
-Flask~=1.1.2
+Flask==1.1.2
 pyodbc~=4.0.30
 yagmail~=0.14.245
 PyYAML~=5.4.1
@@ -6,6 +6,9 @@ python-dotenv~=0.17.1
 Werkzeug==2.0.0
 apispec~=4.4.1
 marshmallow~=3.12.1
+flask-swagger-ui==3.36.0
+apispec-webframeworks==0.5.2
 
 pandas==1.0.3
 flask-login==0.6.1
+Flask-APScheduler==1.12.2

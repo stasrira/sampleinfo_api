@@ -11,6 +11,8 @@ from swagger.api_spec import spec
 import pandas as pd
 import json
 from errors import WebError
+from flask_login import current_user, login_user
+from utils import User
 
 
 @app.route('/')
@@ -379,13 +381,9 @@ def api_sampleinfo_dataset():
 def create_swagger_spec():
     return jsonify(spec.to_dict())
 
-from flask_login import current_user, login_user
-from utils import User
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     import hashlib
-
 
     if current_user.is_authenticated:
         return redirect(url_for('view_reports'))  # TODO: update url to be redirected
@@ -399,23 +397,20 @@ def login():
         return render_template('login.html', next_page=next_page)
 
     # get submitted parameters
-    # user_name = get_web_request_value(request, 'user')
-    user_name = cm2.get_client_ip() + os.environ.get('ST_USER_NAME_POSTFIX')
+    user_name = get_web_request_value(request, 'email')
+    # user_name = cm2.get_client_ip() + os.environ.get('ST_USER_NAME_POSTFIX')
     pwd = get_web_request_value(request, 'pwd')
-    pwd = hashlib.md5(str(pwd).encode('utf-8')).hexdigest()
+    # pwd = hashlib.md5(str(pwd).encode('utf-8')).hexdigest()
     remember_me = True if get_web_request_value(request, 'remember_me') else False
 
     user = User()
-    user = user.get_user(user_name)
+    # user = user.get_user(user_name)
+    user, error_str = user.validate_user(user_name, pwd)
 
-    if user is None or not user.check_password(pwd):
+    if user is None:  #  or not user.check_password(pwd)
         error_num = 401
-        # error_details = {
-        #     'error_msg': 'Invalid credentials were supplied - try again. '
-        #                  'Contact admin if you need help with authentication.',
-        # }
-        # err_msg = render_template('display_message.html', error_details=error_details)
-        flash('Invalid credentials were supplied. Contact admin if you need help with authentication.')
+        _str = 'The user cannot be logged in with the following exception: {}'.format(error_str)
+        flash(_str)
         # return redirect(url_for('login'))
         return render_template('login.html', next_page=next_page, remember_me=remember_me), error_num
 
