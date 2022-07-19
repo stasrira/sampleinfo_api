@@ -38,6 +38,7 @@ class User(UserMixin):
         else:
             return None, error_str
 
+    # this was used for the version with the common password, not in use currently
     # def check_user_name(self, user_id):
     #     default_user = cm2.get_client_ip() + os.environ.get('ST_USER_NAME_POSTFIX')
     #     if user_id == default_user:
