@@ -4,9 +4,10 @@ import os
 
 class WebError(EntityErrors):
 
-    def __init__(self, process_name, mcfg = None, mlog = None):
+    def __init__(self, process_name, mcfg = None, mlog = None, current_user = None):
         self.mcfg = mcfg
         self.mlog = mlog
+        self.current_user = current_user
         EntityErrors.__init__(self, process_name)
 
     def get_errors_to_str(self):
@@ -34,8 +35,8 @@ class WebError(EntityErrors):
             email_app_id = self.mcfg.get_value('Email/application_id').replace('{env_name}', env_name)
             # update subject and body
             email_subject =  '{} - error occurred!'.format(email_app_id)
-            email_body = 'Application: {}\nError message: {}\nError number: {}' \
-                .format(email_app_id, error_desc, error_number)
+            email_body = 'Application: {}\nCurrent user: {}\nError message: {}\nError number: {}' \
+                .format(email_app_id, self.current_user, error_desc, error_number)
             try:
                 email.send_yagmail(
                     emails_to=self.mcfg.get_value('Email/send_to_emails'),

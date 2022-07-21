@@ -444,14 +444,15 @@ def view_reports():
         # mcfg = cm2.get_main_config()
         mlog, mlog_handler = cm2.get_logger()
         process_name = inspect.stack()[0][3]
-        err = WebError(process_name, mcfg, mlog)
+        err = WebError(process_name, mcfg, mlog, current_user.user_id)
 
         _str = 'No list of available reports found in the config, check value of the "{}" parameter. ' \
                'An alert email was sent to the administrator.' \
             .format(cfg_rep_loc)
         error_num = 510
 
-        mlog.info(_str)
+        mlog.warning('{} - user shown the error notification for the following error in "/view_reports" => {}'
+                     .format(current_user.user_id, _str))
         err.add_error(_str,error_num, True)
 
         cm2.stop_logger(mlog, mlog_handler)
@@ -509,6 +510,12 @@ def get_report_filters():
             'instructions': 'Note: Previously selected filters were reset. Please make a new selection.',
             'error_title': 'ERROR!'
         }
+        mlog, mlog_handler = cm2.get_logger()
+        mlog.warning('{} - user shown the error notification for the following error in "/get_report_filters" '
+                     'for report_id: {} => {}'
+                     .format(current_user.user_id, req_report_id, err.get_errors_to_str()))
+        cm2.stop_logger(mlog, mlog_handler)
+
         return render_template('display_message.html', error_details = error_details), error_num
 
 @app.route('/get_report_data', methods=('get', 'post'))
@@ -529,6 +536,10 @@ def get_report_data():
     req_report_id = get_web_request_value(request, 'report_id')
 
     if req_report_id:
+
+        mlog.info('{} - user requested "/get_report_data" for report_id: {}.'
+                  .format(current_user.user_id, req_report_id))
+
         reports = webrep_cfg.get_value(cfg_rep_loc)  # get list of reports from the config file
         for rep in reports:
             if rep['rep_id'] == req_report_id:  # request.form['report_id']:
@@ -564,7 +575,7 @@ def get_report_data():
                     get_csv_file_only = False
 
                 # get the dataset from the database
-                result, columns, err = rp.get_dataset(mcfg, mlog, dataset_name, **parameters)
+                result, columns, err = rp.get_dataset(mcfg, mlog, current_user.user_id, dataset_name, **parameters)
 
                 # check for errors and create an output
                 if err and not err.exist():
@@ -676,7 +687,9 @@ def get_report_data():
                            '(report_id = {}). An email notification has been sent to the administrator. '\
                         .format(report_name, report_id)
                     if mlog:
-                        mlog.info('Proceeding to report the following error to the web page: '.format(_str))
+                        mlog.warning('{} - user shown the error notification for the following error '
+                                     'in "/get_report_data" for report_id: {} => {}'
+                                     .format(current_user.user_id, report_id, err.get_errors_to_str()))
                         cm2.stop_logger(mlog, mlog_handler)
 
                     error_num = 512
@@ -713,7 +726,7 @@ def generate_view(view_name):
         mlog.info('Processing request from "{}" for generating "{}" view.'.format(process_name, view_name))
 
     # get the dataset from the database
-    result, columns, err = rp.get_veiw_data (mcfg, mlog, view_name)
+    result, columns, err = rp.get_veiw_data (mcfg, mlog, current_user.user_id, view_name)
 
     # check for errors and create an output
     if err and not err.exist():
@@ -738,7 +751,7 @@ def generate_metadata_dataset (study_id, center_id, sample_ids, sample_delim):
         mlog.info('Processing request from "{}" for generating metadata dataset.'.format(process_name))
 
     # get the dataset from the database
-    result, columns, err = rp.get_dataset(mcfg, mlog, dataset_name,
+    result, columns, err = rp.get_dataset(mcfg, mlog, current_user.user_id, dataset_name,
                                           study_id = study_id, center_id = center_id,
                                           sample_ids = sample_ids, sample_delim = sample_delim)
 
@@ -764,7 +777,7 @@ def generate_sampleinfo_dataset (center_ids, dataset_type_id, aliquot_ids, aliqu
         mlog.info('Processing request from "{}" for generating sampleinfo dataset.'.format(process_name))
 
     # get the dataset from the database
-    result, columns, err = rp.get_dataset(mcfg, mlog, dataset_name,
+    result, columns, err = rp.get_dataset(mcfg, mlog, current_user.user_id, dataset_name,
                                           center_ids = center_ids, dataset_type_id = dataset_type_id,
                                           aliquot_ids = aliquot_ids, aliquot_delim = aliquot_delim,
                                           aliquot_id_contains = aliquot_id_contains)
@@ -806,7 +819,7 @@ def get_filter_values(filter):
         if 'add_blank_option' in filter:
             filter_add_blank_option = filter['add_blank_option']
         if 'id' in filter and filter['id'] in ['program_id', 'center_id', 'center_ids', 'study_id', 'dataset_type_id']:
-            result, columns, err = rp.get_filter_data(mcfg, mlog, filter['id'])
+            result, columns, err = rp.get_filter_data(mcfg, mlog, current_user.user_id, filter['id'])
 
         # if result is not populated yet and options are present in the config
         if not result and 'options' in filter:

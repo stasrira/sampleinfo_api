@@ -3,12 +3,12 @@ from errors import WebError
 from utils import common2 as cm2, MetadataDB
 
 # common function to retrieve view information from DB
-def get_veiw_data (mcfg, mlog, view_name):
+def get_veiw_data (mcfg, mlog, current_user, view_name):
     result = None
     columns = None
     process_name = inspect.stack()[1][3]
 
-    err = WebError(process_name, mcfg, mlog)
+    err = WebError(process_name, mcfg, mlog, current_user)
     # verify environment variables
     env_validated, env_msg = cm2.check_env_variables(__file__, mlog)
     if not env_validated:
@@ -43,13 +43,13 @@ def get_veiw_data (mcfg, mlog, view_name):
 
 # function retrieves dataset for the specified dataset name
 # utilizing variable set of parameters passed through **parameters
-def get_dataset (mcfg, mlog, dataset_name, **param_values):
+def get_dataset (mcfg, mlog, current_user, dataset_name, **param_values):
 
     result = None
     columns = None
     process_name = inspect.stack()[1][3]
 
-    err = WebError(process_name, mcfg, mlog)
+    err = WebError(process_name, mcfg, mlog, current_user)
     # verify environment variables
     env_validated, env_msg = cm2.check_env_variables(__file__, mlog)
     if not env_validated:
@@ -92,13 +92,13 @@ def get_dataset (mcfg, mlog, dataset_name, **param_values):
 
     return result, columns, err
 
-def get_filter_data (mcfg, mlog, filter_id):
+def get_filter_data (mcfg, mlog, current_user, filter_id):
     result = None
     columns = None
     sql = None
     process_name = inspect.stack()[1][3]
 
-    err = WebError(process_name, mcfg, mlog)
+    err = WebError(process_name, mcfg, mlog, current_user)
     # verify main app settings and get config and logging references
     env_validated = cm2.check_env_variables(__file__, mlog)
     if not env_validated:
