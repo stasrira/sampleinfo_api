@@ -725,8 +725,13 @@ def generate_view(view_name):
     if mlog:
         mlog.info('Processing request from "{}" for generating "{}" view.'.format(process_name, view_name))
 
+    if current_user.is_anonymous:
+        user_to_log = 'api_anonymous_{}'.format(cm2.get_client_ip())
+    else:
+        user_to_log = current_user.user_id
+
     # get the dataset from the database
-    result, columns, err = rp.get_veiw_data (mcfg, mlog, current_user.user_id, view_name)
+    result, columns, err = rp.get_veiw_data (mcfg, mlog, user_to_log, view_name)
 
     # check for errors and create an output
     if err and not err.exist():
@@ -750,8 +755,13 @@ def generate_metadata_dataset (study_id, center_id, sample_ids, sample_delim):
     if mlog:
         mlog.info('Processing request from "{}" for generating metadata dataset.'.format(process_name))
 
+    if current_user.is_anonymous:
+        user_to_log = 'api_anonymous_{}'.format(cm2.get_client_ip())
+    else:
+        user_to_log = current_user.user_id
+
     # get the dataset from the database
-    result, columns, err = rp.get_dataset(mcfg, mlog, current_user.user_id, dataset_name,
+    result, columns, err = rp.get_dataset(mcfg, mlog, user_to_log, dataset_name,
                                           study_id = study_id, center_id = center_id,
                                           sample_ids = sample_ids, sample_delim = sample_delim)
 
@@ -776,8 +786,13 @@ def generate_sampleinfo_dataset (center_ids, dataset_type_id, aliquot_ids, aliqu
     if mlog:
         mlog.info('Processing request from "{}" for generating sampleinfo dataset.'.format(process_name))
 
+    if current_user.is_anonymous:
+        user_to_log = 'api_anonymous_{}'.format(cm2.get_client_ip())
+    else:
+        user_to_log = current_user.user_id
+
     # get the dataset from the database
-    result, columns, err = rp.get_dataset(mcfg, mlog, current_user.user_id, dataset_name,
+    result, columns, err = rp.get_dataset(mcfg, mlog, user_to_log, dataset_name,
                                           center_ids = center_ids, dataset_type_id = dataset_type_id,
                                           aliquot_ids = aliquot_ids, aliquot_delim = aliquot_delim,
                                           aliquot_id_contains = aliquot_id_contains)
