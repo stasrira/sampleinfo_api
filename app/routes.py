@@ -1,6 +1,6 @@
 from app import app
 from flask import request, jsonify, send_from_directory, render_template, redirect, url_for, flash
-from flask_login import login_required
+from flask_login import login_required, logout_user
 from werkzeug.urls import url_parse
 from datetime import datetime
 import inspect
@@ -424,6 +424,13 @@ def login():
         next_page = url_for('view_reports')
     return redirect(next_page)
 
+@app.route('/logout', methods=['GET', 'POST'])
+@login_required
+def logout():
+    if current_user.is_authenticated:
+        logout_user()
+        return redirect(url_for('view_reports'))
+
 @app.route('/view_reports', methods=['GET', 'POST'])
 @login_required
 def view_reports():
@@ -439,7 +446,8 @@ def view_reports():
         env_name = 'Not Defined'
 
     if reports:
-        return render_template("view_report.html", reports = reports, environment = env_name)
+        return render_template("view_report.html", reports = reports, environment = env_name,
+                               current_user = current_user.user_id)
     else:
         # mcfg = cm2.get_main_config()
         mlog, mlog_handler = cm2.get_logger()

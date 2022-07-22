@@ -64,7 +64,7 @@ class LdapConnect():
                 for item in items:
                     value = str(item).split('=')[1]
                     if str(value) == member_of_name_to_match:  # '!!researchsan02a!shr1!neurology!Sealfon_Lab\\\\#rw'
-                        print('OK => has access to J drive; {}'.format(value))
+                        # print('OK => has access to J drive; {}'.format(value))
                         has_access = True
 
         return has_access

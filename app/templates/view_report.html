@@ -47,9 +47,26 @@
         </button>
         <span class="navbar-brand" style="text-align: center;width: 100%; " id="report_title"></span>
         <span class="navbar-brand" style="font-size: 0.95rem;">
-            {% if environment %}
-                Environment: {{ environment }}
-            {%  endif %}
+{#            {% if environment %}#}
+{#                Environment: {{ environment }}#}
+{#            {%  endif %}#}
+            <div class="dropdown">
+              <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                {% if current_user %}
+                    {{ current_user }}
+                {% else %}
+                    anonymous
+                {%  endif %}
+              </button>
+              <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                <li><a class="dropdown-item" href="#">
+                    {% if environment %}
+                        Environment: {{ environment }}
+                    {%  endif %}
+                </a></li>
+                <li><a class="dropdown-item" href="/logout">Logout</a></li>
+              </ul>
+            </div>
         </span>
     </header>
     <div class="container-fluid">
@@ -108,12 +125,16 @@
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <div id="loader" style="width: 100%; text-align: center; display: none">
                         <span class="loader"></span>
-                        {# The following span (presenting the environment name) is added to preserve the same space as used in the title row for the same label,
+                        {# The following span (which is always hidden and presenting the user menu) is added to preserve the same space as used in the title row for the same label,
                         so the loader span will be aligned with the report name in the title row. This extra span has visibility:hidden, but still takes the space #}
-                        <span class="navbar-brand" style="font-size: 0.95rem; visibility: hidden;">
-                            {% if environment %}
-                                Environment: {{ environment }}
-                            {%  endif %}
+                        <span class="navbar-brand" style="font-size: 0.95rem; visibility: hidden; ">
+                              <span class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                                {% if current_user %}
+                                    {{ current_user }}
+                                {% else %}
+                                    anonymous
+                                {%  endif %}
+                              </span>
                         </span>
                     </div>
                     <div id="div_report" style = "display: none;"></div>
