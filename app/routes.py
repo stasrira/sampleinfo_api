@@ -429,7 +429,7 @@ def login():
 def logout():
     if current_user.is_authenticated:
         logout_user()
-        return redirect(url_for('view_reports'))
+        return redirect(url_for('login'))
 
 @app.route('/view_reports', methods=['GET', 'POST'])
 @login_required
