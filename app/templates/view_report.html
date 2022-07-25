@@ -71,11 +71,16 @@
     </header>
     <div class="container-fluid">
         <div class="row">
-            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+            <nav id="sidebarMenu_minimized" class="col-bg-light sidebar collapse px-0" style="width:12px">
+                <a tabindex="0" class="btn px-0" id="filters_show" title = "Show filters">
+                    <i class="fas fa-angle-right bg-light" style="transform: scaleY(1.5);font-size: x-large;color: #5c636a;border: solid 1px #5c636a"></i>
+                </a>
+            </nav>
+            <nav id="sidebarMenu" class="col-sm-5 col-md-4 col-lg-3 col-xxl-2 bg-light sidebar collapse show">
                 <div>
                     <div class="input-group mb-1" id="select_report_div">
                         <span class="input-group-text" id="basic-addon1" style="width: 100px" filter_label_width>Report</span>
-                        <select id = "select_report" class="form-control" style="appearance: auto;" >{# data-toggle="tooltip" data-placement="bottom" #}
+                        <select id = "select_report" class="form-control" style="appearance: auto;" >
                             <option value="" disabled selected hidden>Please Choose...</option>
                             {% for rep in reports %}
                                 <option value = "{{  rep['rep_id'] }}"
@@ -95,13 +100,11 @@
                                 </option>
                             {% endfor %}
                         </select>
-                        <a tabindex="0" class="btn" id="report_popover"
-{#                              data-toggle="popover" data-placement="right" data-trigger="focus"#}
-{#                              title="Test Popover !!!"#}
-{#                              data-content="Test Report Dropdown Popover - details here"#}
-                        >
-{#                            <i class="fas fa-question" style="color:blue"></i>#}
+                        <a tabindex="0" class="btn ps-2 pe-0"  id="report_popover">
                             <i class="far fa-question-circle" style="color:blue"></i>
+                        </a>
+                        <a tabindex="0" class="btn px-0" id="filters_hide" style="right: -12px;width:0" title = "Hide filters">
+                            <i class="fas fa-angle-left bg-light" style="transform: scaleY(1.5);font-size: x-large;color: #5c636a;border: solid 1px #5c636a"></i>
                         </a>
                     </div>
 
@@ -121,8 +124,8 @@
                     <div id = "filters" style = "display:none;"></div>
                 </div>
             </nav>
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4" style="overflow-y: auto;">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <main class="col px-4" style="overflow-y: auto;" id="main_report_area">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-2 pb-2 mb-1 border-bottom">
                     <div id="loader" style="width: 100%; text-align: center; display: none">
                         <span class="loader"></span>
                         {# The following span (which is always hidden and presenting the user menu) is added to preserve the same space as used in the title row for the same label,
