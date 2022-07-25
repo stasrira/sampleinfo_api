@@ -428,15 +428,15 @@ $(document).ready(function() {
     on_filters_hide_click = function () {
         $('#sidebarMenu').removeClass('show');
         $('#sidebarMenu_minimized').addClass('show');
-        $('#main_report_area').removeClass('px-4');
-        $('#main_report_area').addClass('px-2');
+        $('.main_area').removeClass('px-4');
+        $('.main_area').addClass('px-2');
     }
 
     on_filters_show_click = function () {
         $('#sidebarMenu').addClass('show');
         $('#sidebarMenu_minimized').removeClass('show');
-        $('#main_report_area').removeClass('px-2');
-        $('#main_report_area').addClass('px-4');
+        $('.main_area').removeClass('px-2');
+        $('.main_area').addClass('px-4');
     }
 
     //register on click events to hide/show filters
