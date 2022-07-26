@@ -17,8 +17,11 @@ from utils import User
 
 @app.route('/')
 @app.route('/index')
-@app.route('/api')
 def index():
+    return redirect(url_for('view_reports'))
+
+@app.route('/api')
+def api():
     # verify main app settings and get config and logging references
     mcfg = cm2.get_main_config()
     # mlog, mlog_handler = cm2.get_logger(cm2.get_client_ip())
@@ -27,7 +30,7 @@ def index():
     if mcfg and env_validated:
         request_datetime = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         return jsonify(message = 'SealfonLab SampleInfo API Up and Running. Date: {}. '
-                                 'For more details navigate to {}/api/docs'
+                                 'For more details navigate to {}/docs'
                        .format(request_datetime, request.base_url), status = 200)
     else:
         err_code = 400
